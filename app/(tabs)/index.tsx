@@ -1,74 +1,151 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import {
+    FlatList,
+    Image,
+    StyleSheet,
+    View,
+} from 'react-native';
+import React from "react";
+import { Text } from "react-native";
+import {useTranslation} from "react-i18next";
+import useFetchRequest from "@/hooks/api/useFetchRequest";
+import Loader from "@/components/shared/Loader";
+import {get, isArray} from "lodash";
+import dayjs from "dayjs";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+    const {t} = useTranslation();
+    const {data,isPending} = useFetchRequest({
+        queryKey: "home",
+        endpoint: "api/app/home/"
+    })
+    const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
+    const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
+
+    if (isPending) return <Loader />;
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>{t("Дневной отчет, ")}{dayjs().format("DD-MMMM")}</Text>
+            <View style={{marginTop: 14, marginBottom: 10, gap: 10,display: 'flex', flexDirection: "row",justifyContent: 'space-between' }}>
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>{t("Bugun kiritilgan qoldiqlar soni")}</Text>
+                    <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
+                        <Text style={styles.cardText}>{get(data,'stockCount','-')} {t("ta")}</Text>
+                        <Image source={require('@/assets/icons/Pills.png')} style={{width: 36, height: 36}}/>
+                    </View>
+                </View>
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>{t("Bugun qilingan tashriflar soni")}</Text>
+                    <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
+                        <Text style={styles.cardText}>{get(data,'visitCount','-')} {t("ta")}</Text>
+                        <Image source={require('@/assets/icons/human.png')} style={{width: 20, height: 30}}/>
+                    </View>
+                </View>
+            </View>
+
+            <View style={styles.listContainer}>
+                <View style={{backgroundColor: "#0C55911A", padding: 10, borderRadius: 14}}>
+                    <Text style={styles.listTitle}>{t("Bugun kiritilgan qoldiqlar ro’yxati")}</Text>
+                </View>
+
+                <View style={{padding: 16}}>
+                    <FlatList
+                        data={stocks}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) => (
+                            <View style={styles.listItem}>
+                                {/*<Image source={{ uri: item.image }} style={styles.listImage} />*/}
+                                <View style={styles.listInfo}>
+                                    <Text style={styles.listTitleText}>{get(item,'pharmacyName')}</Text>
+                                    <Text style={styles.listSubtitle}>INN: {item.inn}</Text>
+                                </View>
+                                <Text style={styles.listAmount}>{item.amount} {t("ta")}</Text>
+                            </View>
+                        )}
+                    />
+                </View>
+            </View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+    container: {
+        flex: 1,
+        backgroundColor: '#F1F5F8',
+        paddingHorizontal: 16,
+        paddingTop: 20,
+    },
+    title: {
+        fontWeight: 600,
+        fontSize: 16,
+        color: "#0C5591"
+    },
+    card: {
+        backgroundColor: "#fff",
+        width: "48%",
+        borderRadius: 14,
+        padding: 10,
+        shadowColor: "#083346",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 15,
+        elevation: 5,
+    },
+    cardTitle: {
+        color: "#4B5563",
+        fontWeight: 500,
+        fontSize: 12,
+        width: "60%"
+    },
+    cardText: {
+        fontSize: 20,
+        fontWeight: 700,
+        color: "#0C5591",
+        marginTop: 6
+    },
+    listContainer: {
+        backgroundColor: "#fff",
+        borderRadius: 14,
+        shadowColor: "#083346",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 3,
+    },
+    listTitle: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#4B5563",
+    },
+    listItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E7EB"
+    },
+    listImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginRight: 10
+    },
+    listInfo: {
+        flex: 1
+    },
+    listTitleText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#000"
+    },
+    listSubtitle: {
+        fontSize: 12,
+        color: "#6B7280"
+    },
+    listAmount: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#0C5591"
+    }
 });
