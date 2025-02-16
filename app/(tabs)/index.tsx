@@ -44,22 +44,47 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.listContainer}>
-                <View style={{backgroundColor: "#0C55911A", padding: 10, borderRadius: 14}}>
+                <View style={styles.listHeader}>
                     <Text style={styles.listTitle}>{t("Bugun kiritilgan qoldiqlar ro’yxati")}</Text>
                 </View>
 
-                <View style={{padding: 16}}>
+                <View style={{paddingHorizontal: 16, paddingVertical: 6}}>
                     <FlatList
                         data={stocks}
                         keyExtractor={(item, index) => index.toString()}
                         renderItem={({ item }) => (
                             <View style={styles.listItem}>
-                                {/*<Image source={{ uri: item.image }} style={styles.listImage} />*/}
                                 <View style={styles.listInfo}>
                                     <Text style={styles.listTitleText}>{get(item,'pharmacyName')}</Text>
-                                    <Text style={styles.listSubtitle}>INN: {item.inn}</Text>
+                                    <Text style={styles.listSubtitle}>{t("INN")}: {get(item,'inn')}</Text>
                                 </View>
-                                <Text style={styles.listAmount}>{item.amount} {t("ta")}</Text>
+                                <Text style={styles.listAmount}>{get(item,'count')} {t("ta")}</Text>
+                            </View>
+                        )}
+                    />
+                </View>
+            </View>
+
+            <View style={[styles.listContainer,{marginTop: 10}]}>
+                <View style={styles.listHeader}>
+                    <Text style={styles.listTitle}>{t("Bugun qilingan tashriflar ro’yxati ")}</Text>
+                </View>
+
+                <View style={{paddingHorizontal: 16, paddingVertical: 6}}>
+                    <FlatList
+                        data={visits}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) => (
+                            <View style={styles.listItem}>
+                                <View style={{width: 40,height: 40,justifyContent: "center",alignItems: "center",backgroundColor: "#E7EEF4",borderRadius: "50%"}}>
+                                    <Text style={{fontSize: 25,color: "#6B7280"}}>
+                                        {String(get(item,'medInstitution[0]',''))?.toUpperCase()}
+                                    </Text>
+                                </View>
+                                <View style={{marginLeft: 12}}>
+                                    <Text style={{color: "#6B7280",fontWeight: 500,fontSize: 14}}>{get(item,'medInstitution','')}</Text>
+                                    <Text style={{fontWeight: 500,fontSize:12}}>{get(item,'doctor','')}</Text>
+                                </View>
                             </View>
                         )}
                     />
@@ -113,6 +138,12 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 3,
     },
+    listHeader: {
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
+        backgroundColor: "#0C55911A",
+        padding: 10
+    },
     listTitle: {
         fontSize: 14,
         fontWeight: "600",
@@ -122,8 +153,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E7EB"
     },
     listImage: {
         width: 50,
@@ -136,15 +165,12 @@ const styles = StyleSheet.create({
     },
     listTitleText: {
         fontSize: 14,
-        fontWeight: "600",
-        color: "#000"
     },
     listSubtitle: {
         fontSize: 12,
-        color: "#6B7280"
     },
     listAmount: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "700",
         color: "#0C5591"
     }

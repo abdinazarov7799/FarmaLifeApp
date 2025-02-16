@@ -10,10 +10,12 @@ import {Image} from "react-native";
 export default function TabLayout() {
 	const {t} = useTranslation();
 	const user = useAuthStore(state => (state as any).user);
+	const accessToken = useAuthStore(state => (state as any).accessToken);
 	const setUser = useAuthStore(state => (state as any).setUser);
 	const {data} = useFetchRequest({
 		queryKey: '/api/app/user-profile/get-me',
 		endpoint: '/api/app/user-profile/get-me',
+		enabled: !!accessToken
 	})
 
 	useEffect(() => {

@@ -9,10 +9,12 @@ import {useAuthStore} from "@/store";
 const AppUpdateChecker = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const setUser = useAuthStore(state => get(state,'setUser',()=>{}));
+    const accessToken = useAuthStore(state => (state as any).accessToken);
     const {t} = useTranslation();
     const { data } = useFetchRequest({
         endpoint: '/api/app/user-profile/get-me',
         queryKey: '/api/app/user-profile/get-me',
+        enabled: !!accessToken
     });
     const version = Platform.OS === 'ios' ? get(data,'iosVersion') : get(data,'androidVersion');
     const storeUrl = Platform.OS === 'android' ? get(data, 'androidUrl') : get(data, 'iosUrl');
