@@ -1,6 +1,5 @@
 import {Redirect, Tabs} from "expo-router";
 import React, {useEffect} from "react";
-import {TabBarIcon} from "@/components/navigation/TabBarIcon";
 import {useTranslation} from "react-i18next";
 import {useAuthStore} from "@/store";
 import {Filter} from "@/components/navigation/filter";
@@ -81,7 +80,7 @@ export default function TabLayout() {
 				name="med"
 				key="med"
 				options={{
-					title: t("Tibbiyot"),
+					title: t("Tibbiyot muassasalari"),
 					headerTitleAlign: "center",
 					headerRight: Filter,
 					tabBarIcon: ({color}) => (
