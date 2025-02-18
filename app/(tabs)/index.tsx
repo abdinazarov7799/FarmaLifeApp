@@ -11,6 +11,7 @@ import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import {get, isArray} from "lodash";
 import dayjs from "dayjs";
+import ListEmptyComponent from "@/components/ListEmptyComponent";
 
 export default function HomeScreen() {
     const {t} = useTranslation();
@@ -52,6 +53,7 @@ export default function HomeScreen() {
                     <FlatList
                         data={stocks}
                         keyExtractor={(item, index) => index.toString()}
+                        ListEmptyComponent={<ListEmptyComponent text={null}/>}
                         renderItem={({ item }) => (
                             <View style={styles.listItem}>
                                 <View style={styles.listInfo}>
@@ -74,6 +76,7 @@ export default function HomeScreen() {
                     <FlatList
                         data={visits}
                         keyExtractor={(item, index) => index.toString()}
+                        ListEmptyComponent={<ListEmptyComponent text={null}/>}
                         renderItem={({ item }) => (
                             <View style={styles.listItem}>
                                 <View style={{width: 40,height: 40,justifyContent: "center",alignItems: "center",backgroundColor: "#E7EEF4",borderRadius: "50%"}}>

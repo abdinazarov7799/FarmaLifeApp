@@ -4,13 +4,13 @@ import {
     TouchableOpacity,
     FlatList,
     Text,
-    Image
 } from "react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import { get } from "lodash";
+import ListEmptyComponent from "@/components/ListEmptyComponent";
 
 export default function HistoryScreen() {
     const { t } = useTranslation();
@@ -57,6 +57,7 @@ export default function HistoryScreen() {
                     <FlatList
                         data={stocks}
                         keyExtractor={(item, index) => index.toString()}
+                        ListEmptyComponent={<ListEmptyComponent text={null}/>}
                         renderItem={({ item }) => (
                             <View style={styles.listItem}>
                                 <View style={styles.avatar}>
@@ -65,8 +66,8 @@ export default function HistoryScreen() {
                                     </Text>
                                 </View>
                                 <View style={styles.listInfo}>
-                                    <Text style={styles.listTitle}>{item.name}</Text>
-                                    <Text style={styles.listSubtitle}>INN: {item.inn}</Text>
+                                    <Text style={styles.listTitle}>{get(item,'name')}</Text>
+                                    <Text style={styles.listSubtitle}>INN: {get(item,'inn')}</Text>
                                 </View>
                             </View>
                         )}
@@ -75,6 +76,7 @@ export default function HistoryScreen() {
                     <FlatList
                         data={visits}
                         keyExtractor={(item, index) => index.toString()}
+                        ListEmptyComponent={<ListEmptyComponent text={null} />}
                         renderItem={({ item }) => (
                             <View style={styles.listItem}>
                                 <View style={styles.avatar}>

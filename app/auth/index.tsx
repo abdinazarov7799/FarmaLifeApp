@@ -136,6 +136,7 @@ const Index = () => {
 const styles = StyleSheet.create({
     flex: {
         flex: 1,
+        backgroundColor: "white",
     },
     container: {
         flex: 1,
