@@ -1,6 +1,6 @@
 import {
     FlatList, Image, Linking, Platform, Pressable,
-    StyleSheet, Text,
+    StyleSheet, Text, TouchableOpacity,
     View,
 } from "react-native";
 import React from "react";
@@ -8,13 +8,25 @@ import useFetchRequest from "@/hooks/api/useFetchRequest";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {get} from "lodash";
 import Loader from "@/components/shared/Loader";
+import {router, useNavigation} from "expo-router";
+import SearchIcon from "@/assets/icons/search.svg";
+import AddIcon from "@/assets/icons/add-circle.svg";
 
 export default function PharmaciesScreen() {
+    const navigation = useNavigation();
     const { data, isPending } = useFetchRequest({
         queryKey: "pharmacies_list",
         endpoint: "api/app/pharmacies/"
     });
     if (isPending) return <Loader />;
+
+    navigation.setOptions({
+        headerRight: () => (
+            <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/pharmacies')} style={{marginRight: 16}}>
+                <SearchIcon width={20} height={20} />
+            </TouchableOpacity>
+        )
+    });
 
     const handleOpenMap = async (lat:any, long:any) => {
         const yandexUrl = `yandexmaps://maps.yandex.com/?ll=${long},${lat}&z=15`;
@@ -54,6 +66,9 @@ export default function PharmaciesScreen() {
                     </View>
                 )}
             />
+            <View style={styles.floatButton}>
+                <AddIcon />
+            </View>
         </View>
     );
 }
@@ -98,5 +113,17 @@ const styles = StyleSheet.create({
     listSubtitle: {
         fontSize: 14,
         color: "#6B7280"
+    },
+    floatButton: {
+        position: "absolute",
+        right: 16,
+        bottom: 40,
+        width: 52,
+        height: 52,
+        backgroundColor: "#0C5591",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
     }
 });

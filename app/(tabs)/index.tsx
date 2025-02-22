@@ -1,7 +1,6 @@
 import {
     FlatList,
-    Image,
-    StyleSheet,
+    StyleSheet, TouchableOpacity,
     View,
 } from 'react-native';
 import React from "react";
@@ -12,9 +11,16 @@ import Loader from "@/components/shared/Loader";
 import {get, isArray} from "lodash";
 import dayjs from "dayjs";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
+import {useNavigation, useRouter} from "expo-router";
+import FilterIcon from "@/assets/icons/filter.svg";
+import HumanIcon from "@/assets/icons/human.svg";
+import PillsIcon from "@/assets/icons/Pills.svg";
+import RefreshIcon from "@/assets/icons/refresh.svg";
 
 export default function HomeScreen() {
     const {t} = useTranslation();
+    const navigation = useNavigation();
+    const router = useRouter();
     const {data,isPending} = useFetchRequest({
         queryKey: "home",
         endpoint: "api/app/home/"
@@ -24,6 +30,14 @@ export default function HomeScreen() {
 
     if (isPending) return <Loader />;
 
+    navigation.setOptions({
+        headerRight: () => (
+            <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
+                <FilterIcon width={20} height={20} />
+            </TouchableOpacity>
+        )
+    });
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>{t("Дневной отчет, ")}{dayjs().format("DD-MMMM")}</Text>
@@ -32,14 +46,14 @@ export default function HomeScreen() {
                     <Text style={styles.cardTitle}>{t("Bugun kiritilgan qoldiqlar soni")}</Text>
                     <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
                         <Text style={styles.cardText}>{get(data,'stockCount','-')} {t("ta")}</Text>
-                        <Image source={require('@/assets/icons/Pills.png')} style={{width: 36, height: 36}}/>
+                        <PillsIcon width={36} height={36} />
                     </View>
                 </View>
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>{t("Bugun qilingan tashriflar soni")}</Text>
                     <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
                         <Text style={styles.cardText}>{get(data,'visitCount','-')} {t("ta")}</Text>
-                        <Image source={require('@/assets/icons/human.png')} style={{width: 20, height: 30}}/>
+                        <HumanIcon width={20} height={30} />
                     </View>
                 </View>
             </View>
@@ -92,6 +106,10 @@ export default function HomeScreen() {
                         )}
                     />
                 </View>
+            </View>
+
+            <View style={styles.floatButton}>
+                <RefreshIcon />
             </View>
         </View>
     );
@@ -176,5 +194,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "700",
         color: "#0C5591"
+    },
+    floatButton: {
+        position: "absolute",
+        right: 16,
+        bottom: 40,
+        width: 52,
+        height: 52,
+        backgroundColor: "#0C5591",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
     }
 });

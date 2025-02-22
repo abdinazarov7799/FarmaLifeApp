@@ -2,9 +2,12 @@ import {Redirect, Tabs} from "expo-router";
 import React, {useEffect} from "react";
 import {useTranslation} from "react-i18next";
 import {useAuthStore} from "@/store";
-import {Filter} from "@/components/navigation/filter";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
-import {Image} from "react-native";
+import HomeIcon from "@/assets/icons/home-icon.svg"
+import PillsIcon from "@/assets/icons/pills-icon.svg"
+import MedIcon from "@/assets/icons/medicine-icon.svg"
+import HistoryIcon from "@/assets/icons/history-icon.svg"
+import ProfileIcon from "@/assets/icons/profile-icon.svg"
 
 export default function TabLayout() {
 	const {t} = useTranslation();
@@ -56,9 +59,8 @@ export default function TabLayout() {
 				options={{
 					title: t("Bosh sahifa"),
 					headerTitleAlign: "center",
-					headerRight: Filter,
 					tabBarIcon: ({color}) => (
-						<Image source={require('@/assets/icons/home-icon.png')} style={{tintColor: color}} width={24} height={24} />
+						<HomeIcon width={24} height={24} style={{ color }} />
 					),
 					tabBarLabel: t("Bosh sahifa"),
 				}}
@@ -69,9 +71,8 @@ export default function TabLayout() {
 				options={{
 					title: t("Dorixonalar"),
 					headerTitleAlign: "center",
-					headerRight: Filter,
 					tabBarIcon: ({color}) => (
-						<Image source={require('@/assets/icons/pills-icon.png')} style={{tintColor: color}} width={24} height={24} />
+						<PillsIcon width={24} height={24} style={{ color }} />
 					),
 					tabBarLabel: t("Dorixonalar"),
 				}}
@@ -82,9 +83,8 @@ export default function TabLayout() {
 				options={{
 					title: t("Tibbiyot muassasalari"),
 					headerTitleAlign: "center",
-					headerRight: Filter,
 					tabBarIcon: ({color}) => (
-						<Image source={require('@/assets/icons/medicine-icon.png')} style={{tintColor: color}} width={24} height={24} />
+						<MedIcon width={24} height={24} style={{ color }} />
 					),
 					tabBarLabel: t("Tibbiyot"),
 				}}
@@ -95,9 +95,8 @@ export default function TabLayout() {
 				options={{
 					title: t("Tarix"),
 					headerTitleAlign: "center",
-					headerRight: Filter,
 					tabBarIcon: ({color}) => (
-						<Image source={require('@/assets/icons/history-icon.png')} style={{tintColor: color}} width={24} height={24} />
+						<HistoryIcon width={24} height={24} style={{ color }} />
 					),
 					tabBarLabel: t("Tarix"),
 				}}
@@ -108,9 +107,8 @@ export default function TabLayout() {
 				options={{
 					title: t("Profil"),
 					headerTitleAlign: "center",
-					headerRight: Filter,
 					tabBarIcon: ({color}) => (
-						<Image source={require('@/assets/icons/profile-icon.png')} style={{tintColor: color}} width={24} height={24} />
+						<ProfileIcon width={24} height={24} style={{ color }} />
 					),
 					tabBarLabel: t("Profil"),
 				}}

@@ -3,7 +3,7 @@ import {
     View,
     TouchableOpacity,
     FlatList,
-    Text,
+    Text, Image,
 } from "react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,9 +11,13 @@ import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import { get } from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
+import {router, useNavigation} from "expo-router";
+import SearchIcon from '@/assets/icons/search.svg'
+import FilterIcon from '@/assets/icons/filter.svg'
 
 export default function HistoryScreen() {
     const { t } = useTranslation();
+    const navigation = useNavigation();
     const { data:visitsData, isPending:isPendingVisits } = useFetchRequest({
         queryKey: "visits_list",
         endpoint: "api/admin/history/get-visits"
@@ -24,6 +28,18 @@ export default function HistoryScreen() {
         endpoint: "api/admin/history/get-stocks"
     });
 
+    navigation.setOptions({
+        headerRight: () => (
+            <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
+                <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
+                    <SearchIcon width={20} height={20} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
+                    <FilterIcon width={20} height={20} />
+                </TouchableOpacity>
+            </View>
+        )
+    });
     const [activeTab, setActiveTab] = useState("stocks");
 
     if (isPendingVisits || isPendingStocks) return <Loader />;
