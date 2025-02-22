@@ -10,14 +10,17 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "uz.mediasolutions.farmalife"
+      "bundleIdentifier": "uz.mediasolutions.farmalife",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-icon.png",
         "backgroundColor": "#0C5591"
       },
-      "package": "uz.mediasolutions.farmalife"
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "uz.mediasolutions.farmalife",
+      "versionCode": 1
     },
     "plugins": [
       "expo-router",
