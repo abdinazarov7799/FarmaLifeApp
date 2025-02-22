@@ -3,31 +3,39 @@ import {
     View,
     TouchableOpacity,
     FlatList,
-    Text, Image,
+    Text,
 } from "react-native";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useTranslation } from "react-i18next";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
-import { get } from "lodash";
+import {get, isArray, isEmpty} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import {router, useNavigation} from "expo-router";
+import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import SearchIcon from '@/assets/icons/search.svg'
 import FilterIcon from '@/assets/icons/filter.svg'
 
 export default function HistoryScreen() {
     const { t } = useTranslation();
+    const { tab } = useLocalSearchParams();
     const navigation = useNavigation();
+    const [activeTab, setActiveTab] = useState("stocks");
+
+    useEffect(() => {
+      if (!isEmpty(tab)) {
+          setActiveTab(tab);
+      }
+    },[])
+
     const { data:visitsData, isPending:isPendingVisits } = useFetchRequest({
         queryKey: "visits_list",
-        endpoint: "api/admin/history/get-visits"
+        endpoint: "api/admin/history/get-visits",
     });
 
     const { data:stocksData, isPending:isPendingStocks } = useFetchRequest({
         queryKey: "stocks_list",
-        endpoint: "api/admin/history/get-stocks"
+        endpoint: "api/admin/history/get-stocks",
     });
-
     navigation.setOptions({
         headerRight: () => (
             <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
@@ -40,12 +48,11 @@ export default function HistoryScreen() {
             </View>
         )
     });
-    const [activeTab, setActiveTab] = useState("stocks");
 
     if (isPendingVisits || isPendingStocks) return <Loader />;
 
-    const stocks = get(stocksData, "content", []);
-    const visits = get(visitsData, "content", []);
+    const stocks = isArray(get(stocksData, "content", [])) ? get(stocksData, "content", []) : [];
+    const visits = isArray(get(visitsData, "content", [])) ? get(visitsData, "content", []) : [];
 
     return (
         <View style={styles.container}>
@@ -75,17 +82,20 @@ export default function HistoryScreen() {
                         keyExtractor={(item, index) => index.toString()}
                         ListEmptyComponent={<ListEmptyComponent text={null}/>}
                         renderItem={({ item }) => (
-                            <View style={styles.listItem}>
+                            <TouchableOpacity
+                                onPress={() => router.push(`/history/pharmacy/${get(item,'id')}?title=${get(item,'name')}`)}
+                                style={styles.listItem}
+                            >
                                 <View style={styles.avatar}>
                                     <Text style={styles.avatarText}>
-                                        {activeTab === "stocks" ? "A" : "X"}
+                                        {get(item,'name[0]','')}
                                     </Text>
                                 </View>
                                 <View style={styles.listInfo}>
                                     <Text style={styles.listTitle}>{get(item,'name')}</Text>
                                     <Text style={styles.listSubtitle}>INN: {get(item,'inn')}</Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         )}
                     />
                 ) : (
@@ -94,14 +104,17 @@ export default function HistoryScreen() {
                         keyExtractor={(item, index) => index.toString()}
                         ListEmptyComponent={<ListEmptyComponent text={null} />}
                         renderItem={({ item }) => (
-                            <View style={styles.listItem}>
+                            <TouchableOpacity
+                                onPress={() => router.push(`/history/med/${get(item,'id')}?title=${get(item,'name')}`)}
+                                style={styles.listItem}
+                            >
                                 <View style={styles.avatar}>
                                     <Text style={styles.avatarText}>
                                         {get(item,'name[0]','')}
                                     </Text>
                                 </View>
                                 <Text style={styles.listTitle2}>{get(item,'name','')}</Text>
-                            </View>
+                            </TouchableOpacity>
                         )}
                     />
                 )

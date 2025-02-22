@@ -8,6 +8,7 @@ import MaskInput from 'react-native-mask-input';
 import { useTranslation } from "react-i18next";
 import usePostQuery from "@/hooks/api/usePostQuery";
 import {get, isEqual, isNull} from "lodash";
+import UzIcon from "@/assets/images/uz.svg"
 
 const Index = () => {
     const { t } = useTranslation();
@@ -85,11 +86,8 @@ const Index = () => {
                                         }}>
                                             <Text style={{color: "#818181", fontWeight: 400, fontSize: 12}}>{t("Kod")}</Text>
                                             <View style={{display: 'flex', flexDirection: "row"}}>
-                                                <Text style={{fontSize: 18,fontWeight: 600}}>+998</Text>
-                                                <Image
-                                                    source={require('@/assets/images/uz.png')}
-                                                    style={{width: 24,height: 24,marginLeft: 12}}
-                                                />
+                                                <Text style={{fontSize: 18,fontWeight: 600,marginRight: 12}}>+998</Text>
+                                                <UzIcon width={24} height={24} />
                                             </View>
                                         </View>
                                         <View style={{width: "65%"}}>
@@ -158,7 +156,8 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderRadius: 14,
-        fontSize: 16,
+        fontSize: 18,
+        fontWeight: 600,
         backgroundColor: "rgba(243, 243, 243, 1)",
     },
     inputDefault: {
