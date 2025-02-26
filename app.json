@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Farma life",
+    "name": "Farma life community",
     "slug": "FarmaLifeApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,10 +8,20 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/SPLASH.png",
+      "backgroundColor": "#0C5591"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "uz.mediasolutions.farmalife",
-      "buildNumber": "2"
+      "buildNumber": "3",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Ilova sizning joylashuvingizni aniqlash uchun lokatsiyaga ruxsat so‘raydi.",
+        "NSLocationAlwaysUsageDescription": "Ilova lokatsiyani olishi uchun ruxsat berishingiz mumkin.",
+        "NSLocationUsageDescription": "Ilova sizning aniq joylashuvingizni aniqlash uchun lokatsiya ruxsatidan foydalanadi.",
+        "NSCameraUsageDescription": "Ilova kameradan foydalanish uchun ruxsat so‘raydi."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,17 +30,20 @@
       },
       "softwareKeyboardLayoutMode": "pan",
       "package": "uz.mediasolutions.farmalife",
-      "versionCode": 1
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA"
+      ]
     },
     "plugins": [
       "expo-router",
       [
-        "expo-splash-screen",
+        "expo-camera",
         {
-          "image": "./assets/images/SPLASH.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#0C5591"
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "recordAudioAndroid": false
         }
       ]
     ],

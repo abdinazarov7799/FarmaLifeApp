@@ -53,7 +53,7 @@ const Index = () => {
                         const handlePhoneChange = (value:any) => {
                             handleChange("phone")(value);
                             setErrorStatus(null)
-                            if (value.length === 12) {
+                            if (value.length === 12 && Platform.OS === "ios") {
                                 handleSubmit();
                             }
                         };

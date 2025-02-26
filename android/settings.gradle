@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'Farma life'
+rootProject.name = 'Farma life community'
 
 dependencyResolutionManagement {
   versionCatalogs {

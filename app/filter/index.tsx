@@ -1,22 +1,29 @@
 import React, {useState} from "react";
-import {View, Text, Button, StyleSheet, TextInput, Modal, Image, Pressable, TouchableOpacity} from "react-native";
-import DatePicker from "react-native-date-picker";
+import {View, Text, StyleSheet, Pressable, TouchableOpacity, Platform, Modal} from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import {useTranslation} from "react-i18next";
 // @ts-ignore
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
+import {Button} from "native-base";
 
 const FilterScreen = () => {
     const navigation = useNavigation();
     const {redirect} = useLocalSearchParams()
     const {t} = useTranslation();
-    const [fromDate, setFromDate] = useState('01-мая-2022');
-    const [toDate, setToDate] = useState('13-мая-2022');
+    const [fromDate, setFromDate] = useState(new Date());
+    const [toDate, setToDate] = useState(new Date());
     const [openFrom, setOpenFrom] = useState(false);
     const [openTo, setOpenTo] = useState(false);
 
-    const handleSave = (from:any, to:any) => {
-
+    const handleSave = () => {
+        router.push({
+            pathname: redirect ?? "/",
+            params: {
+                fromDate: fromDate.toISOString().split("T")[0],
+                toDate: toDate.toISOString().split("T")[0]
+            }
+        });
     };
 
     return (
@@ -29,15 +36,55 @@ const FilterScreen = () => {
                 <Text style={styles.headerText}>{t("Joriy oy")}</Text>
             </View>
             <View style={styles.container}>
-                <TouchableOpacity style={styles.input}>
+                <TouchableOpacity style={styles.input} onPress={() => setOpenFrom(true)}>
                     <Text style={styles.label}>{t("С")}:</Text>
-                    <Text style={styles.label}>{fromDate}</Text>
+                    <Text style={styles.label}>{fromDate.toLocaleDateString()}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.input}>
+                <TouchableOpacity style={styles.input} onPress={() => setOpenTo(true)}>
                     <Text style={styles.label}>{t("По")}:</Text>
-                    <Text style={styles.label}>{toDate}</Text>
+                    <Text style={styles.label}>{toDate.toLocaleDateString()}</Text>
                 </TouchableOpacity>
+
+                <Button onPress={handleSave} style={styles.button}>
+                    <Text style={styles.buttonText}>{t("Saqlash")}</Text>
+                </Button>
             </View>
+
+            <Modal visible={openFrom} transparent animationType="fade">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <DateTimePicker
+                            value={fromDate}
+                            mode="date"
+                            display="spinner"
+                            onChange={(event, selectedDate) => {
+                                if (selectedDate) {
+                                    setFromDate(selectedDate);
+                                }
+                                setOpenFrom(false);
+                            }}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal visible={openTo} transparent animationType="fade">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <DateTimePicker
+                            value={toDate}
+                            mode="date"
+                            display="spinner"
+                            onChange={(event, selectedDate) => {
+                                if (selectedDate) {
+                                    setToDate(selectedDate);
+                                }
+                                setOpenTo(false);
+                            }}
+                        />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -95,6 +142,32 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 12
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.4)"
+    },
+    modalContent: {
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        padding: 20,
+        alignItems: "center"
+    },
+    button: {
+        width: "100%",
+        paddingVertical: 12,
+        backgroundColor: "#0C5591",
+        borderRadius: 12,
+        height: 44,
+        alignItems: "center",
+        marginTop: "auto"
+    },
+    buttonText: {
+        fontSize: 16,
+        lineHeight: 20,
+        color: "white",
     },
 });
 

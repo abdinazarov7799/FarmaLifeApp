@@ -36,6 +36,7 @@ export default function HistoryScreen() {
         queryKey: "stocks_list",
         endpoint: "api/admin/history/get-stocks",
     });
+
     navigation.setOptions({
         headerRight: () => (
             <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>

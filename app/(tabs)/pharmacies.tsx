@@ -11,6 +11,7 @@ import Loader from "@/components/shared/Loader";
 import {router, useNavigation} from "expo-router";
 import SearchIcon from "@/assets/icons/search.svg";
 import AddIcon from "@/assets/icons/add-circle.svg";
+import LocationIcon from "@/assets/icons/location.svg";
 
 export default function PharmaciesScreen() {
     const navigation = useNavigation();
@@ -18,8 +19,6 @@ export default function PharmaciesScreen() {
         queryKey: "pharmacies_list",
         endpoint: "api/app/pharmacies/"
     });
-    if (isPending) return <Loader />;
-
     navigation.setOptions({
         headerRight: () => (
             <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/pharmacies')} style={{marginRight: 16}}>
@@ -29,10 +28,10 @@ export default function PharmaciesScreen() {
     });
 
     const handleOpenMap = async (lat:any, long:any) => {
+
         const yandexUrl = `yandexmaps://maps.yandex.com/?ll=${long},${lat}&z=15`;
         const googleAppUrl = `geo:${lat},${long}?q=${lat},${long}`;
         const googleWebUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${long}`;
-
         try {
             await Linking.openURL(yandexUrl);
         } catch (error) {
@@ -40,8 +39,10 @@ export default function PharmaciesScreen() {
                 Linking.openURL(googleWebUrl);
             });
         }
+
     };
 
+    if (isPending) return <Loader />;
 
     return (
         <View style={styles.container}>
@@ -50,7 +51,7 @@ export default function PharmaciesScreen() {
                 keyExtractor={(item, index) => index.toString()}
                 ListEmptyComponent={<ListEmptyComponent text={null}/>}
                 renderItem={({ item }) => (
-                    <View style={styles.listItem}>
+                    <TouchableOpacity style={styles.listItem} onPress={() => router.push(`/camera?id=${get(item,'id')}`)}>
                         <View style={styles.avatar}>
                             <Text style={styles.avatarText}>
                                 {"X"}
@@ -61,14 +62,14 @@ export default function PharmaciesScreen() {
                             <Text style={styles.listSubtitle}>INN: {get(item,'inn')}</Text>
                         </View>
                         <Pressable onPress={() => handleOpenMap(get(item,'lat'),get(item,'lng'))}>
-                            <Image source={require('@/assets/icons/location.png')} width={20} height={20} />
+                            <LocationIcon />
                         </Pressable>
-                    </View>
+                    </TouchableOpacity>
                 )}
             />
-            <View style={styles.floatButton}>
+            <Pressable style={styles.floatButton} onPress={() => router.push('/pharmacy/add')}>
                 <AddIcon />
-            </View>
+            </Pressable>
         </View>
     );
 }

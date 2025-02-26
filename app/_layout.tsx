@@ -79,6 +79,12 @@ function RootLayoutNav() {
 								<Stack.Screen name="filter" options={{headerShown: false,}} />
 								<Stack.Screen name="history/pharmacy/[id]" options={{headerShown: false,}} />
 								<Stack.Screen name="history/med/[id]" options={{headerShown: false,}} />
+								<Stack.Screen name="med/[id]" options={{headerShown: false,}} />
+								<Stack.Screen name="pharmacy/[id]" options={{headerShown: false,}} />
+								<Stack.Screen name="pharmacy/add" options={{headerShown: false,}} />
+								<Stack.Screen name="med/add/doctor" options={{headerShown: false,}} />
+								<Stack.Screen name="med/add/pharmacy" options={{headerShown: false,}} />
+								<Stack.Screen name="camera" options={{headerShown: false,}} />
 							</Stack>
 						</BottomSheetModalProvider>
 					</NativeBaseProvider>

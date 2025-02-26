@@ -1,8 +1,8 @@
 import {
     View,
-    StyleSheet, Linking, Platform, FlatList, Text, Pressable, Image, TouchableOpacity
+    StyleSheet, Linking, Platform, FlatList, Text, Pressable, TouchableOpacity
 } from "react-native";
-import React from "react";
+import React, {useCallback, useEffect} from "react";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import {get} from "lodash";
@@ -10,6 +10,7 @@ import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {router, useNavigation} from "expo-router";
 import SearchIcon from "@/assets/icons/search.svg";
 import AddIcon from "@/assets/icons/add-circle.svg";
+import LocationIcon from "@/assets/icons/location.svg";
 
 export default function MedScreen() {
     const navigation = useNavigation();
@@ -17,21 +18,26 @@ export default function MedScreen() {
         queryKey: "med_institution_list",
         endpoint: "api/app/med-institution/"
     });
-    if (isPending) return <Loader />;
 
-    navigation.setOptions({
-        headerRight: () => (
-            <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/med')} style={{marginRight: 16}}>
-                <SearchIcon width={20} height={20} />
-            </TouchableOpacity>
-        )
-    });
+    const updateHeader = useCallback(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity style={{ marginRight: 16 }}>
+                    <SearchIcon width={20} height={20} />
+                </TouchableOpacity>
+            )
+        });
+    }, [navigation]);
+
+    useEffect(() => {
+        updateHeader();
+    }, [updateHeader]);
 
     const handleOpenMap = async (lat:any, long:any) => {
+
         const yandexUrl = `yandexmaps://maps.yandex.com/?ll=${long},${lat}&z=15`;
         const googleAppUrl = `geo:${lat},${long}?q=${lat},${long}`;
         const googleWebUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${long}`;
-
         try {
             await Linking.openURL(yandexUrl);
         } catch (error) {
@@ -39,8 +45,10 @@ export default function MedScreen() {
                 Linking.openURL(googleWebUrl);
             });
         }
+
     };
 
+    if (isPending) return <Loader />;
 
     return (
         <View style={styles.container}>
@@ -49,7 +57,7 @@ export default function MedScreen() {
                 keyExtractor={(item, index) => index.toString()}
                 ListEmptyComponent={<ListEmptyComponent text={null}/>}
                 renderItem={({ item }) => (
-                    <View style={styles.listItem}>
+                    <TouchableOpacity style={styles.listItem} onPress={() => router.push(`/med/${get(item,'id')}?title=${get(item,'name')}`)}>
                         <View style={styles.avatar}>
                             <Text style={styles.avatarText}>
                                 {get(item,'name[0]','')}
@@ -57,14 +65,14 @@ export default function MedScreen() {
                         </View>
                         <Text style={styles.listTitle}>{get(item,'name','')}</Text>
                         <Pressable style={{marginLeft: "auto"}} onPress={() => handleOpenMap(get(item,'lat'),get(item,'lng'))}>
-                            <Image source={require('@/assets/icons/location.png')} width={20} height={20} />
+                            <LocationIcon />
                         </Pressable>
-                    </View>
+                    </TouchableOpacity>
                 )}
             />
-            <View style={styles.floatButton}>
+            <Pressable style={styles.floatButton} onPress={() => router.push('/med/add/pharmacy')}>
                 <AddIcon />
-            </View>
+            </Pressable>
         </View>
     );
 }

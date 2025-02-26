@@ -1,23 +1,27 @@
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import {
+    createJSONStorage,
+    devtools,
+    persist,
+} from 'zustand/middleware';
 
-// const storage = new MMKV();
-//
-// const mmkvStorage = {
-//     getItem: (key) => {
-//         const value = storage.getString(key);
-//         return Promise.resolve(value || null);
-//     },
-//     setItem: (key, value) => {
-//         storage.set(key, value);
-//         return Promise.resolve();
-//     },
-//     removeItem: (key) => {
-//         storage.delete(key);
-//         return Promise.resolve();
-//     }
-// };
+
+const storage = new MMKV();
+
+const mmkvStorage = {
+    setItem: (name:any, value:any) => {
+        return storage.set(name, value);
+    },
+    getItem: name => {
+        const value = storage.getString(name);
+        return value ?? null;
+    },
+    removeItem: name => {
+        return storage.delete(name);
+    },
+};
+
 
 export const useAuthStore = create(
     persist(
@@ -41,9 +45,9 @@ export const useAuthStore = create(
                 refreshToken: null,
             }),
         }),
-        // {
-        //     name: 'auth-storage',
-        //     getStorage: () => mmkvStorage,
-        // }
+        {
+            name: 'auth-store',
+            storage: createJSONStorage(() => mmkvStorage),
+        },
     )
 );

@@ -50,7 +50,11 @@ export default function TabLayout() {
 				},
 				headerTintColor: "#000",
 				headerTitleStyle: { fontFamily: 'Inter', fontWeight: 500, fontSize: 18 },
-				tabBarLabelStyle: { fontSize: 12, fontFamily: 'Inter' },
+				tabBarLabelStyle: {
+					fontSize: 12,
+					fontFamily: 'Inter',
+					marginBottom: 12
+				},
 			}}
 		>
 			<Tabs.Screen

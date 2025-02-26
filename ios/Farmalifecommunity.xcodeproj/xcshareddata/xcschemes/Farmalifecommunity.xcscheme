@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Farmalife.app"
-               BlueprintName = "Farmalife"
-               ReferencedContainer = "container:Farmalife.xcodeproj">
+               BuildableName = "Farmalifecommunity.app"
+               BlueprintName = "Farmalifecommunity"
+               ReferencedContainer = "container:Farmalifecommunity.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "FarmalifeTests.xctest"
-               BlueprintName = "FarmalifeTests"
-               ReferencedContainer = "container:Farmalife.xcodeproj">
+               BuildableName = "FarmalifecommunityTests.xctest"
+               BlueprintName = "FarmalifecommunityTests"
+               ReferencedContainer = "container:Farmalifecommunity.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Farmalife.app"
-            BlueprintName = "Farmalife"
-            ReferencedContainer = "container:Farmalife.xcodeproj">
+            BuildableName = "Farmalifecommunity.app"
+            BlueprintName = "Farmalifecommunity"
+            ReferencedContainer = "container:Farmalifecommunity.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Farmalife.app"
-            BlueprintName = "Farmalife"
-            ReferencedContainer = "container:Farmalife.xcodeproj">
+            BuildableName = "Farmalifecommunity.app"
+            BlueprintName = "Farmalifecommunity"
+            ReferencedContainer = "container:Farmalifecommunity.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

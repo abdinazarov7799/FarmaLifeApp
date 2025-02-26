@@ -28,8 +28,6 @@ export default function HomeScreen() {
     const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
     const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
 
-    if (isPending) return <Loader />;
-
     navigation.setOptions({
         headerRight: () => (
             <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
@@ -37,6 +35,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
         )
     });
+
+    if (isPending) return <Loader />;
 
     return (
         <View style={styles.container}>
