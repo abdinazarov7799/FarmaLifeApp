@@ -82,9 +82,9 @@ function RootLayoutNav() {
 								<Stack.Screen name="med/[id]" options={{headerShown: false,}} />
 								<Stack.Screen name="pharmacy/[id]" options={{headerShown: false,}} />
 								<Stack.Screen name="pharmacy/add" options={{headerShown: false,}} />
+								<Stack.Screen name="pharmacy/stocks" options={{headerShown: false,}} />
 								<Stack.Screen name="med/add/doctor" options={{headerShown: false,}} />
 								<Stack.Screen name="med/add/pharmacy" options={{headerShown: false,}} />
-								<Stack.Screen name="camera" options={{headerShown: false,}} />
 							</Stack>
 						</BottomSheetModalProvider>
 					</NativeBaseProvider>

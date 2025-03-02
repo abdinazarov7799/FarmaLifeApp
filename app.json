@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Farma life community",
+    "name": "FarmaLife",
     "slug": "FarmaLifeApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,12 +15,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "uz.mediasolutions.farmalife",
-      "buildNumber": "3",
+      "buildNumber": "6",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Ilova sizning joylashuvingizni aniqlash uchun lokatsiyaga ruxsat so‘raydi.",
-        "NSLocationAlwaysUsageDescription": "Ilova lokatsiyani olishi uchun ruxsat berishingiz mumkin.",
-        "NSLocationUsageDescription": "Ilova sizning aniq joylashuvingizni aniqlash uchun lokatsiya ruxsatidan foydalanadi.",
-        "NSCameraUsageDescription": "Ilova kameradan foydalanish uchun ruxsat so‘raydi."
+        "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to save and select images.",
+        "NSCameraUsageDescription": "This app requires access to your camera to take photos.",
+        "NSLocationWhenInUseUsageDescription": "This app requires location access to provide location-based services."
       }
     },
     "android": {
@@ -44,6 +43,12 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ]
     ],

@@ -1,33 +1,66 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import CloseIcon from "@/assets/icons/close.svg"
 import {useTranslation} from "react-i18next";
-import {router} from "expo-router";
+import {request} from "@/lib/api";
+import {Button} from "native-base";
+import Loader from "@/components/shared/Loader";
 
-export default function CameraScreen() {
+export default function CameraScreen({setPhotoUrl,onClose}) {
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef(null);
     const {t} = useTranslation();
+    const [loading, setLoading] = useState(false);
 
     if (!permission) {
         return <View />;
     }
 
+    if (loading) return <Loader />
+
     if (!permission.granted) {
         return (
             <View style={styles.container}>
-                <Text style={styles.message}>Kameradan foydalanish uchun ruxsat so‘raymiz.</Text>
-                <Button onPress={requestPermission} title="Ruxsat berish" />
+                <Text style={styles.message}>{t("Kameradan foydalanish uchun ruxsat so‘raymiz.")}</Text>
+                <Button onPress={requestPermission} title={t("Ruxsat berish")} />
             </View>
         );
     }
 
     const takePicture = async () => {
         if (cameraRef.current) {
-            const photo = await cameraRef.current.takePictureAsync();
-            console.log("Rasm olingan:", photo.uri);
+            setLoading(true);
+            try {
+                const photo = await cameraRef.current.takePictureAsync({ base64: false });
+                console.log("Rasm olingan:", photo.uri);
+
+                const formData = new FormData();
+                formData.append("file", {
+                    uri: photo.uri,
+                    name: "photo.jpg",
+                    type: "image/jpeg",
+                } as any);
+
+                const response = await request.post("api/files/upload", formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                console.log("Server javobi:", response.data);
+                if (response.data) {
+                    setPhotoUrl(response.data);
+                } else {
+                    Alert.alert("Xatolik", "Rasm yuklanmadi");
+                }
+            } catch (error) {
+                console.error("Rasm yuklashda xatolik:", error);
+                Alert.alert("Xatolik", "Rasm yuklanmadi");
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -37,7 +70,7 @@ export default function CameraScreen() {
                 <Text style={styles.title}>
                     {t("Camera")}
                 </Text>
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={onClose}>
                     <CloseIcon  />
                 </TouchableOpacity>
             </View>
@@ -45,7 +78,7 @@ export default function CameraScreen() {
             <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
 
             <View style={styles.controls}>
-                <TouchableOpacity style={styles.captureButton} onPress={takePicture} />
+                <Button style={styles.captureButton} onPress={takePicture} isLoading={loading}/>
             </View>
         </View>
     );

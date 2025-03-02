@@ -1,5 +1,5 @@
 import {
-    FlatList,
+    FlatList, RefreshControl, ScrollView,
     StyleSheet, TouchableOpacity,
     View,
 } from 'react-native';
@@ -21,7 +21,7 @@ export default function HomeScreen() {
     const {t} = useTranslation();
     const navigation = useNavigation();
     const router = useRouter();
-    const {data,isPending} = useFetchRequest({
+    const {data,isPending,refetch,isRefetching} = useFetchRequest({
         queryKey: "home",
         endpoint: "api/app/home/"
     })
@@ -39,75 +39,76 @@ export default function HomeScreen() {
     if (isPending) return <Loader />;
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>{t("Дневной отчет, ")}{dayjs().format("DD-MMMM")}</Text>
-            <View style={{marginTop: 14, marginBottom: 10, gap: 10,display: 'flex', flexDirection: "row",justifyContent: 'space-between' }}>
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>{t("Bugun kiritilgan qoldiqlar soni")}</Text>
-                    <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
-                        <Text style={styles.cardText}>{get(data,'stockCount','-')} {t("ta")}</Text>
-                        <PillsIcon width={36} height={36} />
+        <View style={{flex: 1}}>
+            <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch}/>}>
+                <Text style={styles.title}>{t("Дневной отчет, ")}{dayjs().format("DD-MMMM")}</Text>
+                <View style={{marginTop: 14, marginBottom: 10, gap: 10,display: 'flex', flexDirection: "row",justifyContent: 'space-between' }}>
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>{t("Bugun kiritilgan qoldiqlar soni")}</Text>
+                        <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
+                            <Text style={styles.cardText}>{get(data,'stockCount','-')} {t("ta")}</Text>
+                            <PillsIcon width={36} height={36} />
+                        </View>
+                    </View>
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>{t("Bugun qilingan tashriflar soni")}</Text>
+                        <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
+                            <Text style={styles.cardText}>{get(data,'visitCount','-')} {t("ta")}</Text>
+                            <HumanIcon width={20} height={30} />
+                        </View>
                     </View>
                 </View>
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>{t("Bugun qilingan tashriflar soni")}</Text>
-                    <View style={{display: 'flex', flexDirection: "row", justifyContent: 'space-between' ,marginTop: 6}}>
-                        <Text style={styles.cardText}>{get(data,'visitCount','-')} {t("ta")}</Text>
-                        <HumanIcon width={20} height={30} />
+
+                <View style={styles.listContainer}>
+                    <View style={styles.listHeader}>
+                        <Text style={styles.listTitle}>{t("Bugun kiritilgan qoldiqlar ro’yxati")}</Text>
+                    </View>
+
+                    <View style={{paddingHorizontal: 16, paddingVertical: 6}}>
+                        <FlatList
+                            data={stocks}
+                            keyExtractor={(item, index) => index.toString()}
+                            ListEmptyComponent={<ListEmptyComponent text={null}/>}
+                            renderItem={({ item }) => (
+                                <View style={styles.listItem}>
+                                    <View style={styles.listInfo}>
+                                        <Text style={styles.listTitleText}>{get(item,'pharmacyName')}</Text>
+                                        <Text style={styles.listSubtitle}>{t("INN")}: {get(item,'inn')}</Text>
+                                    </View>
+                                    <Text style={styles.listAmount}>{get(item,'count')} {t("ta")}</Text>
+                                </View>
+                            )}
+                        />
                     </View>
                 </View>
-            </View>
 
-            <View style={styles.listContainer}>
-                <View style={styles.listHeader}>
-                    <Text style={styles.listTitle}>{t("Bugun kiritilgan qoldiqlar ro’yxati")}</Text>
-                </View>
+                <View style={[styles.listContainer,{marginTop: 10}]}>
+                    <View style={styles.listHeader}>
+                        <Text style={styles.listTitle}>{t("Bugun qilingan tashriflar ro’yxati ")}</Text>
+                    </View>
 
-                <View style={{paddingHorizontal: 16, paddingVertical: 6}}>
-                    <FlatList
-                        data={stocks}
-                        keyExtractor={(item, index) => index.toString()}
-                        ListEmptyComponent={<ListEmptyComponent text={null}/>}
-                        renderItem={({ item }) => (
-                            <View style={styles.listItem}>
-                                <View style={styles.listInfo}>
-                                    <Text style={styles.listTitleText}>{get(item,'pharmacyName')}</Text>
-                                    <Text style={styles.listSubtitle}>{t("INN")}: {get(item,'inn')}</Text>
+                    <View style={{paddingHorizontal: 16, paddingVertical: 6}}>
+                        <FlatList
+                            data={visits}
+                            keyExtractor={(item, index) => index.toString()}
+                            ListEmptyComponent={<ListEmptyComponent text={null}/>}
+                            renderItem={({ item }) => (
+                                <View style={styles.listItem}>
+                                    <View style={{width: 40,height: 40,justifyContent: "center",alignItems: "center",backgroundColor: "#E7EEF4",borderRadius: "50%"}}>
+                                        <Text style={{fontSize: 25,color: "#6B7280"}}>
+                                            {String(get(item,'medInstitution[0]',''))?.toUpperCase()}
+                                        </Text>
+                                    </View>
+                                    <View style={{marginLeft: 12}}>
+                                        <Text style={{color: "#6B7280",fontWeight: 500,fontSize: 14}}>{get(item,'medInstitution','')}</Text>
+                                        <Text style={{fontWeight: 500,fontSize:12}}>{get(item,'doctor','')}</Text>
+                                    </View>
                                 </View>
-                                <Text style={styles.listAmount}>{get(item,'count')} {t("ta")}</Text>
-                            </View>
-                        )}
-                    />
+                            )}
+                        />
+                    </View>
                 </View>
-            </View>
-
-            <View style={[styles.listContainer,{marginTop: 10}]}>
-                <View style={styles.listHeader}>
-                    <Text style={styles.listTitle}>{t("Bugun qilingan tashriflar ro’yxati ")}</Text>
-                </View>
-
-                <View style={{paddingHorizontal: 16, paddingVertical: 6}}>
-                    <FlatList
-                        data={visits}
-                        keyExtractor={(item, index) => index.toString()}
-                        ListEmptyComponent={<ListEmptyComponent text={null}/>}
-                        renderItem={({ item }) => (
-                            <View style={styles.listItem}>
-                                <View style={{width: 40,height: 40,justifyContent: "center",alignItems: "center",backgroundColor: "#E7EEF4",borderRadius: "50%"}}>
-                                    <Text style={{fontSize: 25,color: "#6B7280"}}>
-                                        {String(get(item,'medInstitution[0]',''))?.toUpperCase()}
-                                    </Text>
-                                </View>
-                                <View style={{marginLeft: 12}}>
-                                    <Text style={{color: "#6B7280",fontWeight: 500,fontSize: 14}}>{get(item,'medInstitution','')}</Text>
-                                    <Text style={{fontWeight: 500,fontSize:12}}>{get(item,'doctor','')}</Text>
-                                </View>
-                            </View>
-                        )}
-                    />
-                </View>
-            </View>
-
+            </ScrollView>
             <View style={styles.floatButton}>
                 <RefreshIcon />
             </View>

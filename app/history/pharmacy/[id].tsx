@@ -1,29 +1,45 @@
 import {router, useLocalSearchParams} from "expo-router";
-import {View, Text, StyleSheet, Pressable, SafeAreaView, TouchableOpacity, FlatList, Image} from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    Pressable,
+    TouchableOpacity,
+    FlatList,
+    Image,
+    RefreshControl,
+    ActivityIndicator
+} from "react-native";
 import React from "react";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
 import CheckIcon from "@/assets/icons/check-icon.svg";
 import {useTranslation} from "react-i18next";
-import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import {get, head, isArray, isEmpty} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import dayjs from "dayjs";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function HistoryView() {
     const { id, title } = useLocalSearchParams();
     const {t} = useTranslation();
 
-    const {data,isPending} = useFetchRequest({
-        queryKey: `get-stock-details/${id}`,
-        endpoint: `api/admin/history/get-stock-details/${id}`,
-        enabled: !!id
+    const {
+        data,
+        isLoading,
+        isRefreshing,
+        onRefresh,
+        onEndReached,
+        isFetchingNextPage
+    } = useInfiniteScroll({
+        key: `get-stock-details/${id}`,
+        url: `api/admin/history/get-stock-details/${id}`,
+        limit: 20
     })
 
-    if (isPending) return <Loader />;
-
-    const stock = isArray(get(data, "content", [])) ? get(data, 'content', []) : [];
+    if (isLoading) return <Loader />;
 
     return (
         <SafeAreaView style={{flex: 1,backgroundColor: "#fff"}}>
@@ -39,8 +55,10 @@ export default function HistoryView() {
 
             <View style={styles.container}>
                 <FlatList
-                    data={stock}
+                    data={data}
                     keyExtractor={(item, index) => index.toString()}
+                    onEndReached={onEndReached}
+                    refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                     ListEmptyComponent={<ListEmptyComponent text={null}/>}
                     renderItem={({ item }) => {
                         const key = head(Object.keys(item))
@@ -81,6 +99,11 @@ export default function HistoryView() {
                             </View>
                         )
                     }}
+                    ListFooterComponent={
+                        <View style={styles.footer}>
+                            {isFetchingNextPage && <ActivityIndicator />}
+                        </View>
+                    }
                 />
             </View>
         </SafeAreaView>
@@ -153,5 +176,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         lineHeight: 14.52,
         color: "#083346"
-    }
+    },
+    footer: {
+        flexDirection: "row",
+        height: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

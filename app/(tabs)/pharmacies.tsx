@@ -1,9 +1,10 @@
 import {
-    FlatList, Image, Linking, Platform, Pressable,
+    ActivityIndicator,
+    FlatList, Image, Linking, Platform, Pressable, RefreshControl,
     StyleSheet, Text, TouchableOpacity,
     View,
 } from "react-native";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {get} from "lodash";
@@ -12,13 +13,31 @@ import {router, useNavigation} from "expo-router";
 import SearchIcon from "@/assets/icons/search.svg";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import LocationIcon from "@/assets/icons/location.svg";
+import CameraScreen from "@/components/camera";
+import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function PharmaciesScreen() {
     const navigation = useNavigation();
-    const { data, isPending } = useFetchRequest({
-        queryKey: "pharmacies_list",
-        endpoint: "api/app/pharmacies/"
-    });
+    const [selected, setSelected] = useState(null);
+    const [photoUrl, setPhotoUrl] = useState(null);
+
+    const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
+        key: "pharmacies_list",
+        url: "api/app/pharmacies/",
+        limit: 20
+    })
+
+    useEffect(() => {
+       setSelected(null);
+       setPhotoUrl(null);
+    },[])
+
+    useEffect(() => {
+        if (!!selected && !!photoUrl) {
+            router.push(`/pharmacy/${get(selected,'id')}?photoUrl=${photoUrl}&title=${get(selected,'name')}&inn=${get(selected,'inn')}`);
+        }
+    }, [selected,photoUrl]);
+
     navigation.setOptions({
         headerRight: () => (
             <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/pharmacies')} style={{marginRight: 16}}>
@@ -42,16 +61,25 @@ export default function PharmaciesScreen() {
 
     };
 
-    if (isPending) return <Loader />;
+    if (!!selected) return (
+        <CameraScreen
+            setPhotoUrl={(url:any) => setPhotoUrl(url)}
+            onClose={() => setSelected(null)}
+        />
+    )
+
+    if (isLoading) return <Loader />;
 
     return (
         <View style={styles.container}>
             <FlatList
-                data={get(data, "content", [])}
+                data={data}
                 keyExtractor={(item, index) => index.toString()}
                 ListEmptyComponent={<ListEmptyComponent text={null}/>}
+                onEndReached={onEndReached}
+                refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                 renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.listItem} onPress={() => router.push(`/camera?id=${get(item,'id')}`)}>
+                    <TouchableOpacity style={styles.listItem} onPress={() => setSelected(item)}>
                         <View style={styles.avatar}>
                             <Text style={styles.avatarText}>
                                 {"X"}
@@ -66,6 +94,11 @@ export default function PharmaciesScreen() {
                         </Pressable>
                     </TouchableOpacity>
                 )}
+                ListFooterComponent={
+                    <View style={styles.footer}>
+                        {isFetchingNextPage && <ActivityIndicator />}
+                    </View>
+                }
             />
             <Pressable style={styles.floatButton} onPress={() => router.push('/pharmacy/add')}>
                 <AddIcon />
@@ -126,5 +159,11 @@ const styles = StyleSheet.create({
         display: "flex",
         alignItems: "center",
         justifyContent: "center"
-    }
+    },
+    footer: {
+        flexDirection: "row",
+        height: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

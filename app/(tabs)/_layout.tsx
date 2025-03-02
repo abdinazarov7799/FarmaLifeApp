@@ -36,7 +36,6 @@ export default function TabLayout() {
 				},
 				tabBarActiveTintColor: "#215ca0",
 				tabBarStyle: {
-					paddingTop: 2,
 					backgroundColor: "#fff",
 					borderTopWidth: 1,
 					borderTopColor: "#ddd",
@@ -53,7 +52,6 @@ export default function TabLayout() {
 				tabBarLabelStyle: {
 					fontSize: 12,
 					fontFamily: 'Inter',
-					marginBottom: 12
 				},
 			}}
 		>

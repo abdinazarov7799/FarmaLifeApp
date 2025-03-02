@@ -1,33 +1,42 @@
 import {router, useLocalSearchParams} from "expo-router";
-import {View, Text, StyleSheet, Pressable, SafeAreaView, TouchableOpacity, FlatList, Modal, Image} from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    Pressable,
+    TouchableOpacity,
+    FlatList,
+    Modal,
+    RefreshControl,
+    ActivityIndicator
+} from "react-native";
 import React, {useState} from "react";
 import CloseIcon from "@/assets/icons/close.svg";
 import {useTranslation} from "react-i18next";
-import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import {get, isArray, isEqual} from "lodash";
+import {get} from "lodash";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import VisitIcon from "@/assets/icons/visit-icon.svg";
 import dayjs from "dayjs";
 import usePostQuery from "@/hooks/api/usePostQuery";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function MedView() {
     const { id, title } = useLocalSearchParams();
     const {t} = useTranslation();
     const [selected, setSelected] = useState(null);
 
-    const {data,isPending} = useFetchRequest({
-        queryKey: `doctors/${id}`,
-        endpoint: `api/app/doctors/${id}`,
-        enabled: !!id
+    const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
+        key: `doctors/${id}`,
+        url: `api/app/doctors/${id}`,
+        limit: 20
     })
 
     const {mutate,isPending:isPendingVisit} = usePostQuery({
         queryKey: `doctors/${id}`,
     })
-
-    const visit = isArray(get(data, "content", [])) ? get(data, 'content', []) : [];
 
     const handleVisit = () => {
         mutate({
@@ -40,7 +49,7 @@ export default function MedView() {
             }
         });
     }
-    if (isPending || isPendingVisit) return <Loader />;
+    if (isLoading || isPendingVisit) return <Loader />;
 
     return (
         <SafeAreaView style={{flex: 1,backgroundColor: "#fff"}}>
@@ -60,8 +69,10 @@ export default function MedView() {
 
             <View style={styles.container}>
                 <FlatList
-                    data={visit}
+                    data={data}
                     keyExtractor={(item, index) => index.toString()}
+                    onEndReached={onEndReached}
+                    refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                     ListEmptyComponent={<ListEmptyComponent text={null}/>}
                     renderItem={({ item }) => (
                         <TouchableOpacity style={styles.listItem} onPress={() => setSelected(item)}>
@@ -77,6 +88,11 @@ export default function MedView() {
                             </View>
                         </TouchableOpacity>
                     )}
+                    ListFooterComponent={
+                        <View style={styles.footer}>
+                            {isFetchingNextPage && <ActivityIndicator />}
+                        </View>
+                    }
                 />
                 <Modal
                     animationType="fade"
@@ -242,5 +258,11 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
-    }
+    },
+    footer: {
+        flexDirection: "row",
+        height: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

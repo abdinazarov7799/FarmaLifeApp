@@ -1,28 +1,41 @@
 import {router, useLocalSearchParams} from "expo-router";
-import {View, Text, StyleSheet, Pressable, SafeAreaView, TouchableOpacity, FlatList} from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    Pressable,
+    TouchableOpacity,
+    FlatList,
+    ActivityIndicator,
+    RefreshControl
+} from "react-native";
 import React from "react";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
-import {useTranslation} from "react-i18next";
-import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import {get, isArray} from "lodash";
+import {get} from "lodash";
 import dayjs from "dayjs";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function HistoryView() {
     const { id, title } = useLocalSearchParams();
-    const {t} = useTranslation();
 
-    const {data,isPending} = useFetchRequest({
-        queryKey: `get-visit-details/${id}`,
-        endpoint: `api/admin/history/get-visit-details/${id}`,
-        enabled: !!id
+    const {
+        data,
+        isLoading,
+        isRefreshing,
+        onRefresh,
+        onEndReached,
+        isFetchingNextPage
+    } = useInfiniteScroll({
+        key: `get-visit-details/${id}`,
+        url: `api/admin/history/get-visit-details/${id}`,
+        limit: 20
     })
 
-    if (isPending) return <Loader />;
-
-    const visit = isArray(get(data, "content", [])) ? get(data, 'content', []) : [];
+    if (isLoading) return <Loader />;
 
     return (
         <SafeAreaView style={{flex: 1,backgroundColor: "#fff"}}>
@@ -38,8 +51,10 @@ export default function HistoryView() {
 
             <View style={styles.container}>
                 <FlatList
-                    data={visit}
+                    data={data}
                     keyExtractor={(item, index) => index.toString()}
+                    onEndReached={onEndReached}
+                    refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                     ListEmptyComponent={<ListEmptyComponent text={null}/>}
                     renderItem={({ item }) => (
                         <View style={styles.listItem}>
@@ -56,6 +71,11 @@ export default function HistoryView() {
                             <Text style={styles.timeText}>{dayjs(get(item,'createdAt')).format("DD.MM.YYYY HH:mm")}</Text>
                         </View>
                     )}
+                    ListFooterComponent={
+                        <View style={styles.footer}>
+                            {isFetchingNextPage && <ActivityIndicator />}
+                        </View>
+                    }
                 />
             </View>
         </SafeAreaView>
@@ -133,5 +153,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 500,
         lineHeight: 14
-    }
+    },
+    footer: {
+        flexDirection: "row",
+        height: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

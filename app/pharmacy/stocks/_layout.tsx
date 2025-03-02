@@ -2,7 +2,7 @@ import React from "react";
 import {SafeAreaView} from "react-native";
 import {Slot} from "expo-router";
 
-const CameraLayout = () => {
+const Layout = () => {
     return (
         <SafeAreaView style={{flex: 1, backgroundColor: "#fff"}}>
             <Slot />
@@ -10,4 +10,4 @@ const CameraLayout = () => {
     );
 };
 
-export default CameraLayout;
+export default Layout;

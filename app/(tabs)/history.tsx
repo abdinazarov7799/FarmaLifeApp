@@ -3,17 +3,17 @@ import {
     View,
     TouchableOpacity,
     FlatList,
-    Text,
+    Text, RefreshControl, ActivityIndicator,
 } from "react-native";
 import React, {useEffect, useState} from "react";
 import { useTranslation } from "react-i18next";
-import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
-import {get, isArray, isEmpty} from "lodash";
+import {get, isEmpty} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import SearchIcon from '@/assets/icons/search.svg'
 import FilterIcon from '@/assets/icons/filter.svg'
+import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function HistoryScreen() {
     const { t } = useTranslation();
@@ -27,15 +27,31 @@ export default function HistoryScreen() {
       }
     },[])
 
-    const { data:visitsData, isPending:isPendingVisits } = useFetchRequest({
-        queryKey: "visits_list",
-        endpoint: "api/admin/history/get-visits",
-    });
+    const {
+        data:visits,
+        isLoading,
+        isRefreshing,
+        onRefresh,
+        onEndReached,
+        isFetchingNextPage
+    } = useInfiniteScroll({
+        key: `visits_list`,
+        url: `api/admin/history/get-visits`,
+        limit: 20
+    })
 
-    const { data:stocksData, isPending:isPendingStocks } = useFetchRequest({
-        queryKey: "stocks_list",
-        endpoint: "api/admin/history/get-stocks",
-    });
+    const {
+        data:stocks,
+        isLoading:isLoadingStocks,
+        isRefreshing:isRefreshingStocks,
+        onRefresh:onRefreshStocks,
+        onEndReached: onEndReachedStocks,
+        isFetchingNextPage:isFetchingNextPageStocks
+    } = useInfiniteScroll({
+        key: `stocks_list`,
+        url: `api/admin/history/get-stocks`,
+        limit: 20
+    })
 
     navigation.setOptions({
         headerRight: () => (
@@ -50,10 +66,7 @@ export default function HistoryScreen() {
         )
     });
 
-    if (isPendingVisits || isPendingStocks) return <Loader />;
-
-    const stocks = isArray(get(stocksData, "content", [])) ? get(stocksData, "content", []) : [];
-    const visits = isArray(get(visitsData, "content", [])) ? get(visitsData, "content", []) : [];
+    if (isLoading || isLoadingStocks) return <Loader />;
 
     return (
         <View style={styles.container}>
@@ -81,6 +94,8 @@ export default function HistoryScreen() {
                     <FlatList
                         data={stocks}
                         keyExtractor={(item, index) => index.toString()}
+                        onEndReached={onEndReachedStocks}
+                        refreshControl={<RefreshControl refreshing={isRefreshingStocks} onRefresh={onRefreshStocks} />}
                         ListEmptyComponent={<ListEmptyComponent text={null}/>}
                         renderItem={({ item }) => (
                             <TouchableOpacity
@@ -98,11 +113,18 @@ export default function HistoryScreen() {
                                 </View>
                             </TouchableOpacity>
                         )}
+                        ListFooterComponent={
+                            <View style={styles.footer}>
+                                {isFetchingNextPageStocks && <ActivityIndicator />}
+                            </View>
+                        }
                     />
                 ) : (
                     <FlatList
                         data={visits}
                         keyExtractor={(item, index) => index.toString()}
+                        onEndReached={onEndReached}
+                        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                         ListEmptyComponent={<ListEmptyComponent text={null} />}
                         renderItem={({ item }) => (
                             <TouchableOpacity
@@ -117,6 +139,11 @@ export default function HistoryScreen() {
                                 <Text style={styles.listTitle2}>{get(item,'name','')}</Text>
                             </TouchableOpacity>
                         )}
+                        ListFooterComponent={
+                            <View style={styles.footer}>
+                                {isFetchingNextPage && <ActivityIndicator />}
+                            </View>
+                        }
                     />
                 )
             }
@@ -194,5 +221,11 @@ const styles = StyleSheet.create({
     listSubtitle: {
         fontSize: 14,
         color: "#6B7280"
-    }
+    },
+    footer: {
+        flexDirection: "row",
+        height: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });

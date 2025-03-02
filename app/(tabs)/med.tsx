@@ -1,9 +1,8 @@
 import {
     View,
-    StyleSheet, Linking, Platform, FlatList, Text, Pressable, TouchableOpacity
+    StyleSheet, Linking, Platform, FlatList, Text, Pressable, TouchableOpacity, RefreshControl, ActivityIndicator
 } from "react-native";
 import React, {useCallback, useEffect} from "react";
-import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
 import {get} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
@@ -11,13 +10,16 @@ import {router, useNavigation} from "expo-router";
 import SearchIcon from "@/assets/icons/search.svg";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import LocationIcon from "@/assets/icons/location.svg";
+import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function MedScreen() {
     const navigation = useNavigation();
-    const { data, isPending } = useFetchRequest({
-        queryKey: "med_institution_list",
-        endpoint: "api/app/med-institution/"
-    });
+
+    const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
+        key: "med_institution_list",
+        url: "api/app/med-institution/",
+        limit: 20
+    })
 
     const updateHeader = useCallback(() => {
         navigation.setOptions({
@@ -48,13 +50,15 @@ export default function MedScreen() {
 
     };
 
-    if (isPending) return <Loader />;
+    if (isLoading) return <Loader />;
 
     return (
         <View style={styles.container}>
             <FlatList
-                data={get(data, "content", [])}
+                data={data}
                 keyExtractor={(item, index) => index.toString()}
+                onEndReached={onEndReached}
+                refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                 ListEmptyComponent={<ListEmptyComponent text={null}/>}
                 renderItem={({ item }) => (
                     <TouchableOpacity style={styles.listItem} onPress={() => router.push(`/med/${get(item,'id')}?title=${get(item,'name')}`)}>
@@ -69,6 +73,11 @@ export default function MedScreen() {
                         </Pressable>
                     </TouchableOpacity>
                 )}
+                ListFooterComponent={
+                    <View style={styles.footer}>
+                        {isFetchingNextPage && <ActivityIndicator />}
+                    </View>
+                }
             />
             <Pressable style={styles.floatButton} onPress={() => router.push('/med/add/pharmacy')}>
                 <AddIcon />
@@ -125,5 +134,11 @@ const styles = StyleSheet.create({
         display: "flex",
         alignItems: "center",
         justifyContent: "center"
-    }
+    },
+    footer: {
+        flexDirection: "row",
+        height: 100,
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });
