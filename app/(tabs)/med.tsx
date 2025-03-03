@@ -50,8 +50,6 @@ export default function MedScreen() {
 
     };
 
-    if (isLoading) return <Loader />;
-
     return (
         <View style={styles.container}>
             <FlatList

@@ -1,13 +1,16 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
 import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import * as ImageManipulator from 'expo-image-manipulator';
 import CloseIcon from "@/assets/icons/close.svg"
 import {useTranslation} from "react-i18next";
 import {request} from "@/lib/api";
 import {Button} from "native-base";
 import Loader from "@/components/shared/Loader";
+import {useAuthStore} from "@/store";
 
-export default function CameraScreen({setPhotoUrl,onClose}) {
+export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offlineSupport = false}) {
+    const { isOnline } = useAuthStore();
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef(null);
@@ -23,46 +26,88 @@ export default function CameraScreen({setPhotoUrl,onClose}) {
     if (!permission.granted) {
         return (
             <View style={styles.container}>
-                <Text style={styles.message}>{t("Kameradan foydalanish uchun ruxsat so‘raymiz.")}</Text>
-                <Button onPress={requestPermission} title={t("Ruxsat berish")} />
+                <Text style={{marginBottom: 10}}>{t("Kameradan foydalanish uchun ruxsat so‘raymiz.")}</Text>
+                <Button onPress={requestPermission} style={{backgroundColor: "#0C5591"}}>
+                    <Text style={{color: "#fff"}}>{t("Ruxsat berish")}</Text>
+                </Button>
             </View>
         );
     }
+
+    const compressImage = async (uri: string) => {
+        try {
+            const compressedImage = await ImageManipulator.manipulateAsync(
+                uri,
+                [{ resize: { width: 800 } }],
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+            );
+            return compressedImage.uri;
+        } catch (error) {
+            console.error("Rasmni siqishda xatolik:", error);
+            return uri;
+        }
+    };
 
     const takePicture = async () => {
         if (cameraRef.current) {
             setLoading(true);
             try {
                 const photo = await cameraRef.current.takePictureAsync({ base64: false });
-                console.log("Rasm olingan:", photo.uri);
 
-                const formData = new FormData();
-                formData.append("file", {
-                    uri: photo.uri,
-                    name: "photo.jpg",
-                    type: "image/jpeg",
-                } as any);
+                const compressedUri = await compressImage(photo.uri);
 
-                const response = await request.post("api/files/upload", formData, {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                });
+                if (offlineSupport) {
+                    if (isOnline) {
+                        const formData = new FormData();
+                        formData.append("file", {
+                            uri: compressedUri,
+                            name: "photo.jpg",
+                            type: "image/jpeg",
+                        } as any);
 
-                console.log("Server javobi:", response.data);
-                if (response.data) {
-                    setPhotoUrl(response.data);
-                } else {
-                    Alert.alert("Xatolik", "Rasm yuklanmadi");
+                        const response = await request.post("api/files/upload", formData, {
+                            headers: {
+                                "Content-Type": "multipart/form-data",
+                            },
+                        });
+
+                        if (response.data) {
+                            setPhotoUrl(response.data);
+                        } else {
+                            Alert.alert("Xatolik", "Rasm yuklanmadi");
+                        }
+                    } else {
+                        handleNavigate(compressedUri);
+                    }
+                }else {
+                    const formData = new FormData();
+                    formData.append("file", {
+                        uri: compressedUri,
+                        name: "photo.jpg",
+                        type: "image/jpeg",
+                    } as any);
+
+                    const response = await request.post("api/files/upload", formData, {
+                        headers: {
+                            "Content-Type": "multipart/form-data",
+                        },
+                    });
+
+                    if (response.data) {
+                        setPhotoUrl(response.data);
+                    } else {
+                        Alert.alert("Xatolik", "Rasm yuklanmadi");
+                    }
                 }
+
             } catch (error) {
-                console.error("Rasm yuklashda xatolik:", error);
-                Alert.alert("Xatolik", "Rasm yuklanmadi");
+                Alert.alert("Xatolik", "Rasm olishda muammo yuz berdi.");
             } finally {
                 setLoading(false);
             }
         }
     };
+
 
     return (
         <View style={styles.container}>
@@ -87,7 +132,9 @@ export default function CameraScreen({setPhotoUrl,onClose}) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#000",
+        backgroundColor: "#F1F5F8",
+        justifyContent: "center",
+        alignItems: "center"
     },
     header: {
         position: "absolute",
@@ -105,7 +152,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 18,
-        fontWeight: 500,
+        fontWeight: "500",
     },
     camera: {
         flex: 1,

@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "uz.mediasolutions.farmalife",
-      "buildNumber": "6",
+      "buildNumber": "7",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to save and select images.",
         "NSCameraUsageDescription": "This app requires access to your camera to take photos.",

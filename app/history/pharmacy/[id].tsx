@@ -39,8 +39,6 @@ export default function HistoryView() {
         limit: 20
     })
 
-    if (isLoading) return <Loader />;
-
     return (
         <SafeAreaView style={{flex: 1,backgroundColor: "#fff"}}>
             <View style={styles.header}>

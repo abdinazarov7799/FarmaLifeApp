@@ -10,10 +10,12 @@ import {useTranslation} from "react-i18next";
 import {BottomSheetModalProvider} from "@gorhom/bottom-sheet";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {StatusBar} from "expo-status-bar";
-import {useAuthStore} from "@/store";
+import {useAuthStore, useNetworkStore} from "@/store";
 import AppUpdateChecker from "@/components/AppUpdateChecker";
 import React from "react";
+import NetInfo from "@react-native-community/netinfo";
 import { Text } from "react-native";
+import {OfflineManager} from "@/lib/offlineManager";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,6 +52,27 @@ function RootLayoutNav() {
 	const queryClient = new QueryClient();
 	const {i18n} = useTranslation();
 	const {lang,user} = useAuthStore()
+	const { setIsOnline, isOnline } = useNetworkStore();
+
+	useEffect(() => {
+		NetInfo.fetch().then((state) => {
+			setIsOnline(state.isConnected ?? false);
+		});
+
+		const unsubscribe = NetInfo.addEventListener((state) => {
+			setIsOnline(state.isConnected ?? false);
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [setIsOnline]);
+
+
+	useEffect(() => {
+		OfflineManager(isOnline)
+	}, [isOnline]);
+
 
 	const loadLanguage = async () => {
 		try {

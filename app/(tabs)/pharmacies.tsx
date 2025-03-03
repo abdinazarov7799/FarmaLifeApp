@@ -1,11 +1,10 @@
 import {
     ActivityIndicator,
-    FlatList, Image, Linking, Platform, Pressable, RefreshControl,
+    FlatList, Linking, Platform, Pressable, RefreshControl,
     StyleSheet, Text, TouchableOpacity,
     View,
 } from "react-native";
 import React, {useEffect, useState} from "react";
-import useFetchRequest from "@/hooks/api/useFetchRequest";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {get} from "lodash";
 import Loader from "@/components/shared/Loader";
@@ -31,6 +30,10 @@ export default function PharmaciesScreen() {
        setSelected(null);
        setPhotoUrl(null);
     },[])
+
+    const handleNavigate = (compressedUri) => {
+        router.push(`/pharmacy/${get(selected,'id')}?photoUrl=${compressedUri}&title=${get(selected,'name')}&inn=${get(selected,'inn')}`)
+    }
 
     useEffect(() => {
         if (!!selected && !!photoUrl) {
@@ -65,10 +68,10 @@ export default function PharmaciesScreen() {
         <CameraScreen
             setPhotoUrl={(url:any) => setPhotoUrl(url)}
             onClose={() => setSelected(null)}
+            handleNavigate={handleNavigate}
+            offlineSupport={true}
         />
     )
-
-    if (isLoading) return <Loader />;
 
     return (
         <View style={styles.container}>

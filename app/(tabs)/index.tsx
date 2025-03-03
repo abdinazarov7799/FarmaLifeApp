@@ -1,5 +1,6 @@
 import {
-    FlatList, RefreshControl, ScrollView,
+    ActivityIndicator,
+    FlatList, Pressable, RefreshControl, ScrollView,
     StyleSheet, TouchableOpacity,
     View,
 } from 'react-native';
@@ -8,7 +9,7 @@ import { Text } from "react-native";
 import {useTranslation} from "react-i18next";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
 import Loader from "@/components/shared/Loader";
-import {get, isArray} from "lodash";
+import {get, isArray, isEmpty} from "lodash";
 import dayjs from "dayjs";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {useNavigation, useRouter} from "expo-router";
@@ -16,15 +17,20 @@ import FilterIcon from "@/assets/icons/filter.svg";
 import HumanIcon from "@/assets/icons/human.svg";
 import PillsIcon from "@/assets/icons/Pills.svg";
 import RefreshIcon from "@/assets/icons/refresh.svg";
+import {useAuthStore, useNetworkStore} from "@/store";
+import {OfflineManager} from "@/lib/offlineManager";
 
 export default function HomeScreen() {
     const {t} = useTranslation();
+    const {offlineVisits,isOfflineSyncing} = useAuthStore();
+    const {isOnline} = useNetworkStore()
     const navigation = useNavigation();
     const router = useRouter();
     const {data,isPending,refetch,isRefetching} = useFetchRequest({
         queryKey: "home",
         endpoint: "api/app/home/"
     })
+
     const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
     const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
 
@@ -35,6 +41,10 @@ export default function HomeScreen() {
             </TouchableOpacity>
         )
     });
+
+    const onSync = () => {
+        OfflineManager(isOnline)
+    }
 
     if (isPending) return <Loader />;
 
@@ -109,8 +119,14 @@ export default function HomeScreen() {
                     </View>
                 </View>
             </ScrollView>
-            <View style={styles.floatButton}>
-                <RefreshIcon />
+            <View style={[styles.floatButton,{backgroundColor: isEmpty(offlineVisits) ? "#0C5591" : "rgb(198,169,24)"}]}>
+                {
+                    isOfflineSyncing ? <ActivityIndicator size={"small"} color="#fff" /> : (
+                        <Pressable onPress={onSync}>
+                            <RefreshIcon />
+                        </Pressable>
+                    )
+                }
             </View>
         </View>
     );
@@ -202,7 +218,6 @@ const styles = StyleSheet.create({
         bottom: 40,
         width: 52,
         height: 52,
-        backgroundColor: "#0C5591",
         borderRadius: "50%",
         display: "flex",
         alignItems: "center",

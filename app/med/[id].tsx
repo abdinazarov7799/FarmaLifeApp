@@ -22,11 +22,14 @@ import dayjs from "dayjs";
 import usePostQuery from "@/hooks/api/usePostQuery";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
+import {useAuthStore, useNetworkStore} from "@/store";
 
 export default function MedView() {
     const { id, title } = useLocalSearchParams();
     const {t} = useTranslation();
     const [selected, setSelected] = useState(null);
+    const {addToOfflineVisits} = useAuthStore();
+    const {isOnline} = useNetworkStore()
 
     const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
         key: `doctors/${id}`,
@@ -39,15 +42,22 @@ export default function MedView() {
     })
 
     const handleVisit = () => {
-        mutate({
-            endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}`
-        }, {
-            onSuccess: (res) => {
-                setSelected(null);
-            },
-            onError: (e) => {
-            }
-        });
+        if (isOnline) {
+            mutate({
+                endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}`
+            }, {
+                onSuccess: (res) => {
+                    setSelected(null);
+                },
+                onError: (e) => {
+                }
+            });
+        }else {
+            addToOfflineVisits({
+                id: get(selected,'id'),
+                createdTime: dayjs().unix(),
+            });
+        }
     }
     if (isLoading || isPendingVisit) return <Loader />;
 

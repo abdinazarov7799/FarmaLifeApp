@@ -8,63 +8,79 @@ import {
     RefreshControl,
     ActivityIndicator,
     FlatList,
-    TextInput,
+    TextInput, Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import usePostQuery from "@/hooks/api/usePostQuery";
 import dayjs from "dayjs";
-import { get, isEmpty } from "lodash";
+import {get, isEmpty, isNil} from "lodash";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { Button } from "native-base";
 import { Formik } from "formik";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import Loader from "@/components/shared/Loader";
+import {AntDesign} from "@expo/vector-icons";
+import {useAuthStore, useNetworkStore} from "@/store";
 
 export default function StocksAddScreen() {
     const { t } = useTranslation();
     const { id, photoUrl } = useLocalSearchParams();
+    const {addToOfflineStocks} = useAuthStore();
+    const {isOnline} = useNetworkStore();
 
     const { data, isLoading, isRefreshing, onRefresh, onEndReached, isFetchingNextPage } = useInfiniteScroll({
         key: `drugs`,
         url: `api/app/drugs/get-all`,
-        limit: 500,
+        limit: 1000,
     });
 
     const { mutate, isPending: isPendingMutate } = usePostQuery({});
 
     const onSubmit = (values) => {
-        const drugsArray = Object.keys(values).map((key) => ({
-            drugId: key,
-            quantity: values[key] ? values[key] : 0,
-        }));
-
-        mutate(
-            {
-                endpoint: "api/app/stocks/add",
-                attributes: {
-                    pharmacyId: id,
-                    createdTime: dayjs().unix(),
-                    photoUrl: photoUrl,
-                    drugs: drugsArray,
-                },
-            },
-            {
-                onSuccess: () => {
-                    router.push("/pharmacies");
-                },
-                onError: () => {
-                    console.error("Xatolik yuz berdi!");
-                },
+        const drugsArray = data?.map(item => {
+            return {
+                drugId: get(item,'id'),
+                quantity: isNil(get(values,`${get(item,'id')}`)) ? 0 : get(values,`${get(item,'id')}`)
             }
-        );
+        })
+
+        if (!photoUrl) {
+            Alert.alert("Diqqat!", "Dorilarni qo'shish uchun rasm yuklash majburiy!");
+            return;
+        }
+
+        if (isOnline) {
+            mutate(
+                {
+                    endpoint: "api/app/stocks/add",
+                    attributes: {
+                        pharmacyId: id,
+                        createdTime: dayjs().unix(),
+                        photoUrl: photoUrl,
+                        drugs: drugsArray,
+                    },
+                },
+                {
+                    onSuccess: () => { router.push("/pharmacies"); },
+                    onError: () => { console.error("Xatolik yuz berdi!"); },
+                }
+            );
+        } else {
+            addToOfflineStocks({
+                pharmacyId: id,
+                createdTime: dayjs().unix(),
+                photoUrl: photoUrl,
+                drugs: drugsArray,
+            });
+            Alert.alert("Diqqat!", "Dorilar offline rejimda saqlandi. Internet qaytganda yuklanadi.");
+            router.push("/pharmacies");
+        }
     };
 
-    if (isLoading) return <Loader />;
-
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: "#F1F5F8" }}>
             <View style={styles.header}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Pressable onPress={() => router.back()}>
@@ -95,14 +111,43 @@ export default function StocksAddScreen() {
                                         )}
                                     </View>
                                     <Text style={styles.listTitle}>{get(item, "name")}</Text>
-                                    <TextInput
-                                        keyboardType="numeric"
-                                        style={styles.input}
-                                        value={values[get(item, "id", "")] || "0"}
-                                        onChangeText={(text) => {
-                                            setFieldValue(get(item, "id", ""), text ? text : "0");
-                                        }}
-                                    />
+
+                                    <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 5 }}>
+                                        <Button
+                                            style={styles.controlButton}
+                                            shadow={"1"}
+                                            onPress={() => {
+                                                const currentValue = Number(values[get(item, "id", "")]) || 0;
+                                                if (currentValue > 0) {
+                                                    setFieldValue(get(item, "id", ""), currentValue - 1);
+                                                }
+                                            }}
+                                        >
+                                            <AntDesign name="minus" size={12} color="black" />
+                                        </Button>
+
+                                        <TextInput
+                                            keyboardType="number-pad"
+                                            style={styles.input}
+                                            value={(values[get(item, "id", "")] || "0").toString()}
+                                            onChangeText={(text) => {
+                                                const newValue = text.replace(/[^0-9]/g, "");
+                                                setFieldValue(get(item, "id", ""), newValue === "" ? "0" : Number(newValue));
+                                            }}
+                                        />
+
+                                        <Button
+                                            style={styles.controlButton}
+                                            shadow={"1"}
+                                            onPress={() => {
+                                                const currentValue = Number(values[get(item, "id", "")]) || 0;
+                                                setFieldValue(get(item, "id", ""), currentValue + 1);
+                                            }}
+                                        >
+                                            <AntDesign name="plus" size={12} color="black" />
+                                        </Button>
+                                    </View>
+
 
                                 </View>
                             )}
@@ -132,6 +177,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         backgroundColor: "#fff",
+        marginBottom: 3
     },
     headerTitle: {
         marginLeft: 20,
@@ -149,9 +195,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: "#FFFFFF",
-        borderRadius: 10,
         padding: 12,
-        marginBottom: 6,
+        marginVertical: 3,
     },
     avatar: {
         width: 55,
@@ -175,14 +220,16 @@ const styles = StyleSheet.create({
         marginLeft: 21,
         color: "#083346",
         fontSize: 16,
+        width: "46%"
     },
     input: {
-        marginLeft: "auto",
-        width: 80,
-        height: 52,
+        width: 60,
+        height: 32,
         borderWidth: 1,
         borderColor: "#8E8E90",
         borderRadius: 8,
+        marginStart: 5,
+        marginEnd: 5,
         paddingHorizontal: 10,
         textAlign: "center",
     },
@@ -210,5 +257,9 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 16,
         color: "#fff",
+    },
+    controlButton: {
+        backgroundColor: "#f0f0f0",
+        borderRadius: 10,
     },
 });

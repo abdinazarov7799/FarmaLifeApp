@@ -1,11 +1,6 @@
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
-import {
-    createJSONStorage,
-    devtools,
-    persist,
-} from 'zustand/middleware';
-
+import {createJSONStorage, persist,} from 'zustand/middleware';
 
 const storage = new MMKV();
 
@@ -13,36 +8,60 @@ const mmkvStorage = {
     setItem: (name:any, value:any) => {
         return storage.set(name, value);
     },
-    getItem: name => {
+    getItem: (name:any) => {
         const value = storage.getString(name);
         return value ?? null;
     },
-    removeItem: name => {
+    removeItem: (name:any) => {
         return storage.delete(name);
     },
 };
 
-
 export const useAuthStore = create(
     persist(
-        (set) => ({
+        (set,get) => ({
             user: null,
             accessToken: null,
             refreshToken: null,
             lang: 'uz',
+            offlineVisits: [],
+            offlineStocks: [],
+            isOfflineSyncing: false,
 
-            setUser: (user) => set({ user }),
+            setUser: (user:any) => set({ user }),
+            setAccessToken: (accessToken:any) => set({ accessToken }),
+            setRefreshToken: (refreshToken:any) => set({ refreshToken }),
+            setLang: (lang:any) => set({ lang }),
+            setOfflineVisits: (offlineVisits:any) => set({ offlineVisits }),
+            addToOfflineVisits: (visit: any) => set({ offlineVisits: [...get().offlineVisits, visit] }),
+            setIsOfflineSyncing: (isLoading: boolean) => set({ isOfflineSyncing: isLoading }),
+            removeFromOfflineVisits: (visitId: string) =>
+                set({
+                    offlineVisits: get().offlineVisits.filter(
+                        (visit) => visit.id !== visitId
+                    ),
+                }),
 
-            setAccessToken: (accessToken) => set({ accessToken }),
+            setOfflineStocks: (stocks) => set({ offlineStocks: stocks }),
 
-            setRefreshToken: (refreshToken) => set({ refreshToken }),
+            addToOfflineStocks: (stock) => {
+                set({ offlineStocks: [...get().offlineStocks, stock] });
+            },
 
-            setLang: (lang) => set({ lang }),
+            removeFromOfflineStocks: (stockId) => {
+                set({
+                    offlineStocks: get().offlineStocks.filter(
+                        (stock) => stock.id !== stockId
+                    ),
+                });
+            },
 
             clearAuthData: () => set({
                 user: null,
                 accessToken: null,
                 refreshToken: null,
+                offlineVisits: [],
+                offlineStocks: [],
             }),
         }),
         {
@@ -51,3 +70,8 @@ export const useAuthStore = create(
         },
     )
 );
+
+export const useNetworkStore = create((set) => ({
+    isOnline: true,
+    setIsOnline: (isOnline: boolean) => set({ isOnline }),
+}));
