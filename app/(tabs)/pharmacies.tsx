@@ -4,7 +4,7 @@ import {
     StyleSheet, Text, TouchableOpacity,
     View,
 } from "react-native";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useLayoutEffect, useState} from "react";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {get} from "lodash";
 import Loader from "@/components/shared/Loader";
@@ -26,6 +26,16 @@ export default function PharmaciesScreen() {
         limit: 20
     })
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity style={{marginRight: 16}}>
+                    <SearchIcon width={20} height={20} />
+                </TouchableOpacity>
+            )
+        });
+    }, [navigation]);
+
     useEffect(() => {
        setSelected(null);
        setPhotoUrl(null);
@@ -40,14 +50,6 @@ export default function PharmaciesScreen() {
             router.push(`/pharmacy/${get(selected,'id')}?photoUrl=${photoUrl}&title=${get(selected,'name')}&inn=${get(selected,'inn')}`);
         }
     }, [selected,photoUrl]);
-
-    navigation.setOptions({
-        headerRight: () => (
-            <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/pharmacies')} style={{marginRight: 16}}>
-                <SearchIcon width={20} height={20} />
-            </TouchableOpacity>
-        )
-    });
 
     const handleOpenMap = async (lat:any, long:any) => {
 

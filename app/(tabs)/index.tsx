@@ -4,7 +4,7 @@ import {
     StyleSheet, TouchableOpacity,
     View,
 } from 'react-native';
-import React from "react";
+import React, {useLayoutEffect} from "react";
 import { Text } from "react-native";
 import {useTranslation} from "react-i18next";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
@@ -34,13 +34,15 @@ export default function HomeScreen() {
     const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
     const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
 
-    navigation.setOptions({
-        headerRight: () => (
-            <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
-                <FilterIcon width={20} height={20} />
-            </TouchableOpacity>
-        )
-    });
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
+                    <FilterIcon width={20} height={20} />
+                </TouchableOpacity>
+            )
+        });
+    },[navigation])
 
     const onSync = () => {
         OfflineManager(isOnline)
@@ -50,8 +52,8 @@ export default function HomeScreen() {
 
     return (
         <View style={{flex: 1}}>
-            <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch}/>}>
-                <Text style={styles.title}>{t("Дневной отчет, ")}{dayjs().format("DD-MMMM")}</Text>
+            <View style={styles.container}>
+                <Text style={styles.title}>{t("Дневной отчет")}, {dayjs().format("DD-MMMM")}</Text>
                 <View style={{marginTop: 14, marginBottom: 10, gap: 10,display: 'flex', flexDirection: "row",justifyContent: 'space-between' }}>
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>{t("Bugun kiritilgan qoldiqlar soni")}</Text>
@@ -79,6 +81,7 @@ export default function HomeScreen() {
                             data={stocks}
                             keyExtractor={(item, index) => index.toString()}
                             ListEmptyComponent={<ListEmptyComponent text={null}/>}
+                            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch}/>}
                             renderItem={({ item }) => (
                                 <View style={styles.listItem}>
                                     <View style={styles.listInfo}>
@@ -102,6 +105,7 @@ export default function HomeScreen() {
                             data={visits}
                             keyExtractor={(item, index) => index.toString()}
                             ListEmptyComponent={<ListEmptyComponent text={null}/>}
+                            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch}/>}
                             renderItem={({ item }) => (
                                 <View style={styles.listItem}>
                                     <View style={{width: 40,height: 40,justifyContent: "center",alignItems: "center",backgroundColor: "#E7EEF4",borderRadius: "50%"}}>
@@ -118,7 +122,7 @@ export default function HomeScreen() {
                         />
                     </View>
                 </View>
-            </ScrollView>
+            </View>
             <View style={[styles.floatButton,{backgroundColor: isEmpty(offlineVisits) ? "#0C5591" : "rgb(198,169,24)"}]}>
                 {
                     isOfflineSyncing ? <ActivityIndicator size={"small"} color="#fff" /> : (

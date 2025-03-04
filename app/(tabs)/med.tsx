@@ -2,7 +2,7 @@ import {
     View,
     StyleSheet, Linking, Platform, FlatList, Text, Pressable, TouchableOpacity, RefreshControl, ActivityIndicator
 } from "react-native";
-import React, {useCallback, useEffect} from "react";
+import React, {useCallback, useEffect, useLayoutEffect} from "react";
 import Loader from "@/components/shared/Loader";
 import {get} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
@@ -21,7 +21,7 @@ export default function MedScreen() {
         limit: 20
     })
 
-    const updateHeader = useCallback(() => {
+    useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
                 <TouchableOpacity style={{ marginRight: 16 }}>
@@ -30,10 +30,6 @@ export default function MedScreen() {
             )
         });
     }, [navigation]);
-
-    useEffect(() => {
-        updateHeader();
-    }, [updateHeader]);
 
     const handleOpenMap = async (lat:any, long:any) => {
 

@@ -69,7 +69,8 @@
     "zustand": "^5.0.1",
     "@react-native-picker/picker": "2.9.0",
     "@react-native-community/netinfo": "11.4.1",
-    "expo-image-manipulator": "~13.0.6"
+    "expo-image-manipulator": "~13.0.6",
+    "expo-network": "~7.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -7,10 +7,10 @@ import {useTranslation} from "react-i18next";
 import {request} from "@/lib/api";
 import {Button} from "native-base";
 import Loader from "@/components/shared/Loader";
-import {useAuthStore} from "@/store";
+import {useNetworkStore} from "@/store";
 
 export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offlineSupport = false}) {
-    const { isOnline } = useAuthStore();
+    const { isOnline } = useNetworkStore();
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef(null);
@@ -34,12 +34,12 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
         );
     }
 
-    const compressImage = async (uri: string) => {
+    const compressImage = async (uri: string): Promise<string> => {
         try {
             const compressedImage = await ImageManipulator.manipulateAsync(
-                uri,
-                [{ resize: { width: 800 } }],
-                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+                uri, // ✅ 1-argument: rasm manbasi (URI)
+                [{ resize: { width: 800 } }], // ✅ Kichraytirish
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // ✅ 70% siqish
             );
             return compressedImage.uri;
         } catch (error) {
@@ -132,7 +132,7 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F1F5F8",
+        backgroundColor: "#000",
         justifyContent: "center",
         alignItems: "center"
     },

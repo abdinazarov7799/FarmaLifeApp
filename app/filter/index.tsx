@@ -1,14 +1,13 @@
 import React, {useState} from "react";
-import {View, Text, StyleSheet, Pressable, TouchableOpacity, Platform, Modal} from "react-native";
+import {View, Text, StyleSheet, Pressable, TouchableOpacity, Modal} from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import {router, useLocalSearchParams, useNavigation} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {useTranslation} from "react-i18next";
 // @ts-ignore
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import {Button} from "native-base";
 
 const FilterScreen = () => {
-    const navigation = useNavigation();
     const {redirect} = useLocalSearchParams()
     const {t} = useTranslation();
     const [fromDate, setFromDate] = useState(new Date());
@@ -18,7 +17,7 @@ const FilterScreen = () => {
 
     const handleSave = () => {
         router.push({
-            pathname: redirect ?? "/",
+            pathname: `${redirect} ?? "/"`,
             params: {
                 fromDate: fromDate.toISOString().split("T")[0],
                 toDate: toDate.toISOString().split("T")[0]
@@ -29,7 +28,7 @@ const FilterScreen = () => {
     return (
         <View style={{flex: 1}}>
             <View style={styles.header}>
-                <Pressable onPress={() => router.push(redirect ?? "/")}>
+                <Pressable onPress={() => router.back()}>
                     <ArrowLeft width={24} height={24} />
                 </Pressable>
                 <Text style={styles.headerTitle}>{t("Filtr")}</Text>

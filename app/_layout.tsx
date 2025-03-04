@@ -13,7 +13,7 @@ import {StatusBar} from "expo-status-bar";
 import {useAuthStore, useNetworkStore} from "@/store";
 import AppUpdateChecker from "@/components/AppUpdateChecker";
 import React from "react";
-import NetInfo from "@react-native-community/netinfo";
+import * as Network from "expo-network";
 import { Text } from "react-native";
 import {OfflineManager} from "@/lib/offlineManager";
 
@@ -49,24 +49,37 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-	const queryClient = new QueryClient();
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				staleTime: 1000 * 60 * 5, // 5 daqiqa davomida ma'lumotlar eski deb hisoblanmaydi
+				gcTime: 1000 * 60 * 120, // 30 daqiqa davomida keshda qoladi
+				refetchOnWindowFocus: false, // Ekranga qaytganda avtomatik so‘rov qilinmasin
+				refetchOnReconnect: true, // Internet qaytganda qayta yuklash
+				retry: 1, // Internet yo'q bo'lsa, faqat 1 marta qayta urinib ko'rish
+			},
+		},
+	});
+
 	const {i18n} = useTranslation();
 	const {lang,user} = useAuthStore()
 	const { setIsOnline, isOnline } = useNetworkStore();
 
 	useEffect(() => {
-		NetInfo.fetch().then((state) => {
-			setIsOnline(state.isConnected ?? false);
-		});
+		const checkNetworkStatus = async () => {
+			const networkState = await Network.getNetworkStateAsync();
+			setIsOnline(networkState.isConnected);
+		};
+		checkNetworkStatus();
 
-		const unsubscribe = NetInfo.addEventListener((state) => {
-			setIsOnline(state.isConnected ?? false);
+		const unsubscribe = Network.addNetworkStateListener((networkState) => {
+			setIsOnline(networkState.isConnected);
 		});
 
 		return () => {
-			unsubscribe();
+			unsubscribe.remove();
 		};
-	}, [setIsOnline]);
+	}, [isOnline]);
 
 
 	useEffect(() => {

@@ -5,7 +5,7 @@ import {
     FlatList,
     Text, RefreshControl, ActivityIndicator,
 } from "react-native";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useLayoutEffect, useState} from "react";
 import { useTranslation } from "react-i18next";
 import Loader from "@/components/shared/Loader";
 import {get, isEmpty} from "lodash";
@@ -53,18 +53,20 @@ export default function HistoryScreen() {
         limit: 20
     })
 
-    navigation.setOptions({
-        headerRight: () => (
-            <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
-                <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
-                    <SearchIcon width={20} height={20} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
-                    <FilterIcon width={20} height={20} />
-                </TouchableOpacity>
-            </View>
-        )
-    });
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
+                    <TouchableOpacity>
+                        <SearchIcon width={20} height={20} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
+                        <FilterIcon width={20} height={20} />
+                    </TouchableOpacity>
+                </View>
+            )
+        });
+    }, [navigation]);
 
     if (isLoading || isLoadingStocks) return <Loader />;
 

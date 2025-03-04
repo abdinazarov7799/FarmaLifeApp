@@ -42,6 +42,7 @@ export default function MedView() {
     })
 
     const handleVisit = () => {
+
         if (isOnline) {
             mutate({
                 endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}`
@@ -57,6 +58,7 @@ export default function MedView() {
                 id: get(selected,'id'),
                 createdTime: dayjs().unix(),
             });
+            setSelected(null);
         }
     }
     if (isLoading || isPendingVisit) return <Loader />;
