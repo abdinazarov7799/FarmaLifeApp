@@ -13,6 +13,7 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
     const { isOnline } = useNetworkStore();
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
+    const [cameraReady, setCameraReady] = useState(false);
     const cameraRef = useRef(null);
     const {t} = useTranslation();
     const [loading, setLoading] = useState(false);
@@ -26,10 +27,12 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
     if (!permission.granted) {
         return (
             <View style={styles.container}>
-                <Text style={{marginBottom: 10}}>{t("Kameradan foydalanish uchun ruxsat so‘raymiz.")}</Text>
-                <Button onPress={requestPermission} style={{backgroundColor: "#0C5591"}}>
-                    <Text style={{color: "#fff"}}>{t("Ruxsat berish")}</Text>
-                </Button>
+                <View style={{margin: "auto"}}>
+                    <Text style={{marginBottom: 10}}>{t("Kameradan foydalanish uchun ruxsat so‘raymiz.")}</Text>
+                    <Button onPress={requestPermission} style={{backgroundColor: "#0C5591"}}>
+                        <Text style={{color: "#fff"}}>{t("Ruxsat berish")}</Text>
+                    </Button>
+                </View>
             </View>
         );
     }
@@ -37,9 +40,9 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
     const compressImage = async (uri: string): Promise<string> => {
         try {
             const compressedImage = await ImageManipulator.manipulateAsync(
-                uri, // ✅ 1-argument: rasm manbasi (URI)
-                [{ resize: { width: 800 } }], // ✅ Kichraytirish
-                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // ✅ 70% siqish
+                uri,
+                [{ resize: { width: 800 } }],
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
             );
             return compressedImage.uri;
         } catch (error) {
@@ -49,11 +52,19 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
     };
 
     const takePicture = async () => {
-        if (cameraRef.current) {
-            setLoading(true);
-            try {
-                const photo = await cameraRef.current.takePictureAsync({ base64: false });
+        if (!cameraReady) {
+            Alert.alert("Xatolik", "Kamera hali tayyor emas!");
+            return;
+        }
 
+        if (!cameraRef.current) {
+            Alert.alert("Xatolik", "Kamera ishga tushmagan yoki noto‘g‘ri ishlamoqda.");
+            return;
+        }
+
+        if (cameraRef.current) {
+            try {
+                const photo = await cameraRef.current?.takePictureAsync({ base64: false, skipProcessing: true });
                 const compressedUri = await compressImage(photo.uri);
 
                 if (offlineSupport) {
@@ -64,13 +75,11 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
                             name: "photo.jpg",
                             type: "image/jpeg",
                         } as any);
-
                         const response = await request.post("api/files/upload", formData, {
                             headers: {
                                 "Content-Type": "multipart/form-data",
                             },
                         });
-
                         if (response.data) {
                             setPhotoUrl(response.data);
                         } else {
@@ -92,7 +101,6 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
                             "Content-Type": "multipart/form-data",
                         },
                     });
-
                     if (response.data) {
                         setPhotoUrl(response.data);
                     } else {
@@ -101,9 +109,8 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
                 }
 
             } catch (error) {
+                console.log(error,'error')
                 Alert.alert("Xatolik", "Rasm olishda muammo yuz berdi.");
-            } finally {
-                setLoading(false);
             }
         }
     };
@@ -120,7 +127,16 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
                 </TouchableOpacity>
             </View>
 
-            <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+            <CameraView
+                mute={true}
+                autofocus={'on'}
+                active={true}
+                onCameraReady={() => setCameraReady(true)}
+                pictureSize={'800'}
+                ref={cameraRef}
+                style={styles.camera}
+                facing={facing}
+            />
 
             <View style={styles.controls}>
                 <Button style={styles.captureButton} onPress={takePicture} isLoading={loading}/>
@@ -132,9 +148,7 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#000",
-        justifyContent: "center",
-        alignItems: "center"
+        zIndex: 9999
     },
     header: {
         position: "absolute",

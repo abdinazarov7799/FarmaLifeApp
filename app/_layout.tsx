@@ -16,6 +16,8 @@ import React from "react";
 import * as Network from "expo-network";
 import { Text } from "react-native";
 import {OfflineManager} from "@/lib/offlineManager";
+import {PersistQueryClientProvider} from "@tanstack/react-query-persist-client";
+import {MMKV} from "react-native-mmkv";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,15 +50,32 @@ export default function RootLayout() {
 	return <RootLayoutNav />;
 }
 
+const storage = new MMKV();
+
+const mmkvPersister = {
+	persistClient: (client) => {
+		storage.set("react-query-cache", JSON.stringify(client));
+	},
+	restoreClient: () => {
+		const cache = storage.getString("react-query-cache");
+		return cache ? JSON.parse(cache) : undefined;
+	},
+	removeClient: () => {
+		storage.delete("react-query-cache");
+	},
+};
+
+
+
 function RootLayoutNav() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
-				staleTime: 1000 * 60 * 5, // 5 daqiqa davomida ma'lumotlar eski deb hisoblanmaydi
-				gcTime: 1000 * 60 * 120, // 30 daqiqa davomida keshda qoladi
-				refetchOnWindowFocus: false, // Ekranga qaytganda avtomatik so‘rov qilinmasin
-				refetchOnReconnect: true, // Internet qaytganda qayta yuklash
-				retry: 1, // Internet yo'q bo'lsa, faqat 1 marta qayta urinib ko'rish
+				staleTime: 1000 * 60 * 5,
+				gcTime: 1000 * 60 * 60 * 24,
+				refetchOnWindowFocus: false,
+				refetchOnReconnect: true,
+				retry: 1,
 			},
 		},
 	});
@@ -79,12 +98,19 @@ function RootLayoutNav() {
 		return () => {
 			unsubscribe.remove();
 		};
-	}, [isOnline]);
+	}, []);
 
 
 	useEffect(() => {
-		OfflineManager(isOnline)
+		const syncOfflineData = async () => {
+			await OfflineManager(isOnline);
+		};
+
+		if (isOnline) {
+			syncOfflineData();
+		}
 	}, [isOnline]);
+
 
 
 	const loadLanguage = async () => {
@@ -102,30 +128,32 @@ function RootLayoutNav() {
 
 	return (
 		<>
-			<QueryClientProvider client={queryClient}>
-				<GestureHandlerRootView>
-					<NativeBaseProvider theme={theme}>
-						<AppUpdateChecker />
-						<StatusBar style={"dark"} />
-						<BottomSheetModalProvider>
-							<Stack initialRouteName={!user ? 'auth' : '(tabs)'}>
-								<Stack.Screen name="(tabs)" options={{headerShown: false}} />
-								<Stack.Screen name="+not-found" />
-								<Stack.Screen name="auth" options={{headerShown: false,}} />
-								<Stack.Screen name="filter" options={{headerShown: false,}} />
-								<Stack.Screen name="history/pharmacy/[id]" options={{headerShown: false,}} />
-								<Stack.Screen name="history/med/[id]" options={{headerShown: false,}} />
-								<Stack.Screen name="med/[id]" options={{headerShown: false,}} />
-								<Stack.Screen name="pharmacy/[id]" options={{headerShown: false,}} />
-								<Stack.Screen name="pharmacy/add" options={{headerShown: false,}} />
-								<Stack.Screen name="pharmacy/stocks" options={{headerShown: false,}} />
-								<Stack.Screen name="med/add/doctor" options={{headerShown: false,}} />
-								<Stack.Screen name="med/add/pharmacy" options={{headerShown: false,}} />
-							</Stack>
-						</BottomSheetModalProvider>
-					</NativeBaseProvider>
-				</GestureHandlerRootView>
-			</QueryClientProvider>
+			<PersistQueryClientProvider client={queryClient} persistOptions={{ persister: mmkvPersister }}>
+				<QueryClientProvider client={queryClient}>
+					<GestureHandlerRootView>
+						<NativeBaseProvider theme={theme}>
+							<AppUpdateChecker />
+							<StatusBar style={"dark"} />
+							<BottomSheetModalProvider>
+								<Stack initialRouteName={!user ? 'auth' : '(tabs)'}>
+									<Stack.Screen name="(tabs)" options={{headerShown: false}} />
+									<Stack.Screen name="+not-found" />
+									<Stack.Screen name="auth" options={{headerShown: false,}} />
+									<Stack.Screen name="filter" options={{headerShown: false,}} />
+									<Stack.Screen name="history/pharmacy/[id]" options={{headerShown: false,}} />
+									<Stack.Screen name="history/med/[id]" options={{headerShown: false,}} />
+									<Stack.Screen name="med/[id]" options={{headerShown: false,}} />
+									<Stack.Screen name="pharmacy/[id]" options={{headerShown: false,}} />
+									<Stack.Screen name="pharmacy/add" options={{headerShown: false,}} />
+									<Stack.Screen name="pharmacy/stocks" options={{headerShown: false,}} />
+									<Stack.Screen name="med/add/doctor" options={{headerShown: false,}} />
+									<Stack.Screen name="med/add/pharmacy" options={{headerShown: false,}} />
+								</Stack>
+							</BottomSheetModalProvider>
+						</NativeBaseProvider>
+					</GestureHandlerRootView>
+				</QueryClientProvider>
+			</PersistQueryClientProvider>
 		</>
 	);
 }

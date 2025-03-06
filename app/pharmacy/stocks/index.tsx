@@ -20,9 +20,9 @@ import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { Button } from "native-base";
 import { Formik } from "formik";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import Loader from "@/components/shared/Loader";
 import {AntDesign} from "@expo/vector-icons";
 import {useAuthStore, useNetworkStore} from "@/store";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 export default function StocksAddScreen() {
     const { t } = useTranslation();
@@ -80,7 +80,7 @@ export default function StocksAddScreen() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: "#F1F5F8" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#F1F5F8" }}>
             <View style={styles.header}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Pressable onPress={() => router.back()}>
@@ -112,7 +112,7 @@ export default function StocksAddScreen() {
                                     </View>
                                     <Text style={styles.listTitle}>{get(item, "name")}</Text>
 
-                                    <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 5 }}>
+                                    <View style={{ flexDirection: "row", alignItems: "center", marginHorizontal: 5 }}>
                                         <Button
                                             style={styles.controlButton}
                                             shadow={"1"}
@@ -168,7 +168,7 @@ export default function StocksAddScreen() {
                     </>
                 )}
             </Formik>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         marginLeft: 21,
         color: "#083346",
         fontSize: 16,
-        width: "46%"
+        flex: 1
     },
     input: {
         width: 60,

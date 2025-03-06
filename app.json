@@ -10,12 +10,13 @@
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/SPLASH.png",
-      "backgroundColor": "#0C5591"
+      "backgroundColor": "#0C5591",
+      "resizeMode": "cover"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "uz.mediasolutions.farmalife",
-      "buildNumber": "8",
+      "buildNumber": "9",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to save and select images.",
         "NSCameraUsageDescription": "This app requires access to your camera to take photos.",

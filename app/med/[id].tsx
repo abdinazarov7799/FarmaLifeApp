@@ -42,7 +42,6 @@ export default function MedView() {
     })
 
     const handleVisit = () => {
-
         if (isOnline) {
             mutate({
                 endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}`
@@ -95,7 +94,7 @@ export default function MedView() {
                             </View>
                             <View style={styles.listInfo}>
                                 <Text style={styles.listTitle}>{get(item,'fio')}</Text>
-                                <Text style={styles.listSubtitle}>{get(item,'position')}</Text>
+                                <Text style={styles.listSubtitle}>{get(item,'position')} • {get(item,'specialization')}</Text>
                                 <Text style={styles.listSubtitle2}>{get(item,'phone')}</Text>
                             </View>
                         </TouchableOpacity>
@@ -119,7 +118,7 @@ export default function MedView() {
                                     {get(selected,'fio')}
                                 </Text>
                                 <Text style={{fontWeight: 500,fontSize: 16}}>
-                                    {get(selected,'position')}
+                                    {get(selected,'position')} • {get(selected,'specialization')}
                                 </Text>
                                 <Text style={{fontWeight: 500,fontSize: 16,marginTop: 6,marginBottom:40}}>
                                     {get(selected,'phone')}
@@ -156,7 +155,7 @@ const styles = StyleSheet.create({
         flex: 1
     },
     header: {
-        height: 46,
+        height: 55,
         display: "flex",
         flexDirection: "row",
         alignItems: "center",

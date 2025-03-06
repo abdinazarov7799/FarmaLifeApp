@@ -12,7 +12,6 @@ import {
 import React from "react";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
-import Loader from "@/components/shared/Loader";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {get} from "lodash";
 import dayjs from "dayjs";
@@ -42,7 +41,7 @@ export default function HistoryView() {
                     <ArrowLeft width={24} height={24} />
                 </Pressable>
                 <Text style={styles.headerTitle}>{title}</Text>
-                <TouchableOpacity onPress={() => router.navigate(`/filter?redirect=/history/med/${id}?title=${title}`)}>
+                <TouchableOpacity onPress={() => router.push(`/filter?redirect=/history/med/${id}?title=${title}&a=b`)}>
                     <FilterIcon width={20} height={20} />
                 </TouchableOpacity>
             </View>

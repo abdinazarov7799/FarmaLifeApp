@@ -46,7 +46,7 @@ export default function HistoryView() {
                     <ArrowLeft width={24} height={24} />
                 </Pressable>
                 <Text style={styles.headerTitle}>{title}</Text>
-                <TouchableOpacity onPress={() => router.navigate(`/filter?redirect=/history/pharmacy/${id}?title=${title}`)}>
+                <TouchableOpacity onPress={() => router.navigate(`/filter?redirect=/history/pharmacy/${id}?title=${title}&a=b`)}>
                     <FilterIcon width={20} height={20} />
                 </TouchableOpacity>
             </View>

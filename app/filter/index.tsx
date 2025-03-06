@@ -17,7 +17,7 @@ const FilterScreen = () => {
 
     const handleSave = () => {
         router.push({
-            pathname: `${redirect} ?? "/"`,
+            pathname: redirect ?? "/",
             params: {
                 fromDate: fromDate.toISOString().split("T")[0],
                 toDate: toDate.toISOString().split("T")[0]

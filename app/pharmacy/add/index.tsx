@@ -12,6 +12,7 @@ import * as Yup from "yup";
 import * as Location from "expo-location";
 import {Button, Select} from "native-base";
 import CameraScreen from "@/components/camera";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 export default function PharmacyAddScreen () {
     const {t} = useTranslation();
@@ -83,13 +84,15 @@ export default function PharmacyAddScreen () {
         });
     }
 
-    if (isOpenCamera) return <CameraScreen setPhotoUrl={(url) => {
+    if (isOpenCamera) return <CameraScreen
+        setPhotoUrl={(url) => {
         setPhotoUrl(url);
         setIsOpenCamera(false);
-    }} onClose={() => setIsOpenCamera(false)} />
+    }}
+        onClose={() => setIsOpenCamera(false)} />
 
     return (
-        <View style={{flex: 1}}>
+        <SafeAreaView style={{flex: 1}}>
             <View style={styles.header}>
                 <View style={{display: "flex", flexDirection: "row", alignItems: "center", marginBottom: 22}}>
                     <Pressable onPress={() => router.back()}>
@@ -230,7 +233,7 @@ export default function PharmacyAddScreen () {
                     )}
                 </Formik>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
