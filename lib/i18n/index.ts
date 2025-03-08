@@ -16,7 +16,7 @@ i18n
     .use(I18NextHttpBackend)
     .init({
         fallbackLng: 'uz',
-        saveMissing: true,
+        saveMissing: false,
         defaultNS: 'main',
         compatibilityJSON: 'v3',
         react: {
