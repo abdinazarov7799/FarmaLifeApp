@@ -92,7 +92,7 @@ export default function PharmacyAddScreen () {
         onClose={() => setIsOpenCamera(false)} />
 
     return (
-        <SafeAreaView style={{flex: 1}}>
+        <View style={{flex: 1}}>
             <View style={styles.header}>
                 <View style={{display: "flex", flexDirection: "row", alignItems: "center", marginBottom: 22}}>
                     <Pressable onPress={() => router.back()}>
@@ -233,7 +233,7 @@ export default function PharmacyAddScreen () {
                     )}
                 </Formik>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 

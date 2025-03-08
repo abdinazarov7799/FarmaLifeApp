@@ -2,7 +2,7 @@ import {
     View,
     StyleSheet, Linking, Platform, FlatList, Text, Pressable, TouchableOpacity, RefreshControl, ActivityIndicator
 } from "react-native";
-import React, {useCallback, useEffect, useLayoutEffect} from "react";
+import React, {useCallback, useEffect, useLayoutEffect, useState} from "react";
 import Loader from "@/components/shared/Loader";
 import {get} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
@@ -11,25 +11,32 @@ import SearchIcon from "@/assets/icons/search.svg";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import LocationIcon from "@/assets/icons/location.svg";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
+import {useTranslation} from "react-i18next";
+import {Input} from "native-base";
 
 export default function MedScreen() {
     const navigation = useNavigation();
+    const {t} = useTranslation();
+    const [search,setSearch] = useState(null);
 
     const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
         key: "med_institution_list",
         url: "api/app/med-institution/",
-        limit: 20
+        limit: 20,
+        filters: {
+            search
+        }
     })
 
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity style={{ marginRight: 16 }}>
-                    <SearchIcon width={20} height={20} />
-                </TouchableOpacity>
-            )
-        });
-    }, [navigation]);
+    // useLayoutEffect(() => {
+    //     navigation.setOptions({
+    //         headerRight: () => (
+    //             <TouchableOpacity style={{ marginRight: 16 }}>
+    //                 <SearchIcon width={20} height={20} />
+    //             </TouchableOpacity>
+    //         )
+    //     });
+    // }, [navigation]);
 
     const handleOpenMap = async (lat:any, long:any) => {
 
@@ -44,10 +51,24 @@ export default function MedScreen() {
             });
         }
 
-    };
+    }
+
+    // if (isLoading) return <Loader />;
 
     return (
         <View style={styles.container}>
+            <View style={{ backgroundColor: '#fff', padding: 8, borderRadius: 999, marginBottom: 8 }}>
+                <Input
+                    variant="unstyled"
+                    style={{ color: '#6b7280', fontSize: 15 }}
+                    value={search}
+                    placeholder={t("Tibbiyot muassasalarini izlash")}
+                    onChangeText={(text) => setSearch(text)}
+                    InputLeftElement={
+                        <SearchIcon width={20} height={20} />
+                    }
+                />
+            </View>
             <FlatList
                 data={data}
                 keyExtractor={(item, index) => index.toString()}
@@ -55,7 +76,7 @@ export default function MedScreen() {
                 refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
                 ListEmptyComponent={<ListEmptyComponent text={null}/>}
                 renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.listItem} onPress={() => router.push(`/med/${get(item,'id')}?title=${get(item,'name')}`)}>
+                    <TouchableOpacity style={styles.listItem} onPress={() => router.push(`/med/${get(item,'id')}?title=${get(item,'name')}&a=b`)}>
                         <View style={styles.avatar}>
                             <Text style={styles.avatarText}>
                                 {get(item,'name[0]','')}

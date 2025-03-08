@@ -14,27 +14,34 @@ import AddIcon from "@/assets/icons/add-circle.svg";
 import LocationIcon from "@/assets/icons/location.svg";
 import CameraScreen from "@/components/camera";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
+import {Input} from "native-base";
+import {useTranslation} from "react-i18next";
 
 export default function PharmaciesScreen() {
     const navigation = useNavigation();
     const [selected, setSelected] = useState(null);
     const [photoUrl, setPhotoUrl] = useState(null);
+    const [search, setSearch] = useState(null);
+    const {t} = useTranslation()
 
     const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
         key: "pharmacies_list",
         url: "api/app/pharmacies/",
-        limit: 20
+        limit: 20,
+        filters: {
+            search
+        }
     })
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity style={{marginRight: 16}}>
-                    <SearchIcon width={20} height={20} />
-                </TouchableOpacity>
-            )
-        });
-    }, [navigation]);
+    //
+    // useLayoutEffect(() => {
+    //     navigation.setOptions({
+    //         headerRight: () => (
+    //             <TouchableOpacity style={{marginRight: 16}}>
+    //                 <SearchIcon width={20} height={20} />
+    //             </TouchableOpacity>
+    //         )
+    //     });
+    // }, [navigation]);
 
     useEffect(() => {
        setSelected(null);
@@ -75,8 +82,22 @@ export default function PharmaciesScreen() {
         />
     )
 
+    // if (isLoading) return <Loader />
+
     return (
         <View style={styles.container}>
+            <View style={{ backgroundColor: '#fff', padding: 8, borderRadius: 999, marginBottom: 8 }}>
+                <Input
+                    variant="unstyled"
+                    style={{ color: '#6b7280', fontSize: 15 }}
+                    value={search}
+                    placeholder={t("Dorixonani izlash")}
+                    onChangeText={(text) => setSearch(text)}
+                    InputLeftElement={
+                        <SearchIcon width={20} height={20} />
+                    }
+                />
+            </View>
             <FlatList
                 data={data}
                 keyExtractor={(item, index) => index.toString()}

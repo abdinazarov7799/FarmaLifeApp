@@ -14,10 +14,11 @@ import {router, useLocalSearchParams, useNavigation} from "expo-router";
 import SearchIcon from '@/assets/icons/search.svg'
 import FilterIcon from '@/assets/icons/filter.svg'
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
+import dayjs from "dayjs";
 
 export default function HistoryScreen() {
     const { t } = useTranslation();
-    const { tab } = useLocalSearchParams();
+    const { tab, from, to } = useLocalSearchParams();
     const navigation = useNavigation();
     const [activeTab, setActiveTab] = useState("stocks");
 
@@ -37,7 +38,11 @@ export default function HistoryScreen() {
     } = useInfiniteScroll({
         key: `visits_list`,
         url: `api/admin/history/get-visits`,
-        limit: 20
+        limit: 20,
+        filters: {
+            from,
+            to
+        }
     })
 
     const {
@@ -50,16 +55,20 @@ export default function HistoryScreen() {
     } = useInfiniteScroll({
         key: `stocks_list`,
         url: `api/admin/history/get-stocks`,
-        limit: 20
+        limit: 20,
+        filters: {
+            from,
+            to
+        }
     })
 
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
                 <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
-                    <TouchableOpacity>
-                        <SearchIcon width={20} height={20} />
-                    </TouchableOpacity>
+                    {/*<TouchableOpacity>*/}
+                    {/*    <SearchIcon width={20} height={20} />*/}
+                    {/*</TouchableOpacity>*/}
                     <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
                         <FilterIcon width={20} height={20} />
                     </TouchableOpacity>
@@ -101,7 +110,7 @@ export default function HistoryScreen() {
                         ListEmptyComponent={<ListEmptyComponent text={null}/>}
                         renderItem={({ item }) => (
                             <TouchableOpacity
-                                onPress={() => router.push(`/history/pharmacy/${get(item,'id')}?title=${get(item,'name')}`)}
+                                onPress={() => router.push(`/history/pharmacy/${get(item,'id')}?title=${get(item,'name')}&a=b`)}
                                 style={styles.listItem}
                             >
                                 <View style={styles.avatar}>
@@ -112,6 +121,7 @@ export default function HistoryScreen() {
                                 <View style={styles.listInfo}>
                                     <Text style={styles.listTitle}>{get(item,'name')}</Text>
                                     <Text style={styles.listSubtitle}>INN: {get(item,'inn')}</Text>
+                                    <Text style={styles.listSubtitle}>{dayjs(get(item,'createdTime')).format('HH:mm DD.MM.YYYY')}</Text>
                                 </View>
                             </TouchableOpacity>
                         )}
@@ -130,7 +140,7 @@ export default function HistoryScreen() {
                         ListEmptyComponent={<ListEmptyComponent text={null} />}
                         renderItem={({ item }) => (
                             <TouchableOpacity
-                                onPress={() => router.push(`/history/med/${get(item,'id')}?title=${get(item,'name')}`)}
+                                onPress={() => router.push(`/history/med/${get(item,'id')}?title=${get(item,'name')}&a=b`)}
                                 style={styles.listItem}
                             >
                                 <View style={styles.avatar}>
@@ -138,7 +148,10 @@ export default function HistoryScreen() {
                                         {get(item,'name[0]','')}
                                     </Text>
                                 </View>
-                                <Text style={styles.listTitle2}>{get(item,'name','')}</Text>
+                                <View>
+                                    <Text style={styles.listTitle2}>{get(item,'name','')}</Text>
+                                    <Text style={styles.listSubtitle}>{dayjs(get(item,'createdTime')).format('HH:mm DD.MM.YYYY')}</Text>
+                                </View>
                             </TouchableOpacity>
                         )}
                         ListFooterComponent={

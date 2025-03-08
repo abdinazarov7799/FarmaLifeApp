@@ -14,25 +14,29 @@ const FilterScreen = () => {
     const [toDate, setToDate] = useState(new Date());
     const [openFrom, setOpenFrom] = useState(false);
     const [openTo, setOpenTo] = useState(false);
-
+    console.log(redirect,'redirect')
     const handleSave = () => {
         router.push({
             pathname: redirect ?? "/",
             params: {
-                fromDate: fromDate.toISOString().split("T")[0],
-                toDate: toDate.toISOString().split("T")[0]
+                from: fromDate.toISOString().split("T")[0],
+                to: toDate.toISOString().split("T")[0]
             }
         });
     };
 
+    const handleSetCurrent = () => {
+        setFromDate(new Date());
+        setToDate(new Date());
+    }
     return (
         <View style={{flex: 1}}>
             <View style={styles.header}>
-                <Pressable onPress={() => router.back()}>
+                <Pressable onPress={() => router.push(redirect)}>
                     <ArrowLeft width={24} height={24} />
                 </Pressable>
                 <Text style={styles.headerTitle}>{t("Filtr")}</Text>
-                <Text style={styles.headerText}>{t("Joriy oy")}</Text>
+                <Text style={styles.headerText} onPress={handleSetCurrent}>{t("Joriy oy")}</Text>
             </View>
             <View style={styles.container}>
                 <TouchableOpacity style={styles.input} onPress={() => setOpenFrom(true)}>

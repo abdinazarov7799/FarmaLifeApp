@@ -15,7 +15,7 @@ import CloseIcon from "@/assets/icons/close.svg";
 import {useTranslation} from "react-i18next";
 import Loader from "@/components/shared/Loader";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import {get} from "lodash";
+import {get, isNil, isNull} from "lodash";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import VisitIcon from "@/assets/icons/visit-icon.svg";
 import dayjs from "dayjs";
@@ -23,6 +23,8 @@ import usePostQuery from "@/hooks/api/usePostQuery";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 import {useAuthStore, useNetworkStore} from "@/store";
+import CheckIcon from "@/assets/icons/check.svg";
+import DoubleCheckIcon from "@/assets/icons/check-icon.svg";
 
 export default function MedView() {
     const { id, title } = useLocalSearchParams();
@@ -62,6 +64,10 @@ export default function MedView() {
     }
     if (isLoading || isPendingVisit) return <Loader />;
 
+    const isToday = (dateTime) => {
+        return dayjs(dateTime).isToday()
+    }
+
     return (
         <SafeAreaView style={{flex: 1,backgroundColor: "#fff"}}>
             <View style={styles.header}>
@@ -97,6 +103,9 @@ export default function MedView() {
                                 <Text style={styles.listSubtitle}>{get(item,'position')} • {get(item,'specialization')}</Text>
                                 <Text style={styles.listSubtitle2}>{get(item,'phone')}</Text>
                             </View>
+                            {
+                                !isNil(get(item,'visitedTime')) &&
+                                (isToday(get(item,'visitedTime')) ? <DoubleCheckIcon /> : <CheckIcon />)}
                         </TouchableOpacity>
                     )}
                     ListFooterComponent={

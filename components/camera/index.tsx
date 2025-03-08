@@ -130,7 +130,6 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
             <CameraView
                 mute={true}
                 autofocus={'on'}
-                active={true}
                 onCameraReady={() => setCameraReady(true)}
                 pictureSize={'800'}
                 ref={cameraRef}

@@ -19,7 +19,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 
 export default function HistoryView() {
-    const { id, title } = useLocalSearchParams();
+    const { id, title, from, to } = useLocalSearchParams();
 
     const {
         data,
@@ -31,7 +31,11 @@ export default function HistoryView() {
     } = useInfiniteScroll({
         key: `get-visit-details/${id}`,
         url: `api/admin/history/get-visit-details/${id}`,
-        limit: 20
+        limit: 20,
+        filters: {
+            from,
+            to
+        }
     })
 
     return (
@@ -41,9 +45,10 @@ export default function HistoryView() {
                     <ArrowLeft width={24} height={24} />
                 </Pressable>
                 <Text style={styles.headerTitle}>{title}</Text>
-                <TouchableOpacity onPress={() => router.push(`/filter?redirect=/history/med/${id}?title=${title}&a=b`)}>
-                    <FilterIcon width={20} height={20} />
-                </TouchableOpacity>
+                <View></View>
+                {/*<TouchableOpacity onPress={() => router.push(`/filter?redirect=/history/med/${id}?title=${title}&a=b`)}>*/}
+                {/*    <FilterIcon width={20} height={20} />*/}
+                {/*</TouchableOpacity>*/}
             </View>
 
             <View style={styles.container}>

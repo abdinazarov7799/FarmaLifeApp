@@ -80,7 +80,7 @@ export default function StocksAddScreen() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#F1F5F8" }}>
+        <View style={{ flex: 1, backgroundColor: "#F1F5F8" }}>
             <View style={styles.header}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Pressable onPress={() => router.back()}>
@@ -168,7 +168,7 @@ export default function StocksAddScreen() {
                     </>
                 )}
             </Formik>
-        </SafeAreaView>
+        </View>
     );
 }
 

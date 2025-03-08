@@ -33,16 +33,16 @@ export default function HomeScreen() {
 
     const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
     const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
-
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
-                    <FilterIcon width={20} height={20} />
-                </TouchableOpacity>
-            )
-        });
-    },[navigation])
+    //
+    // useLayoutEffect(() => {
+    //     navigation.setOptions({
+    //         headerRight: () => (
+    //             <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
+    //                 <FilterIcon width={20} height={20} />
+    //             </TouchableOpacity>
+    //         )
+    //     });
+    // },[navigation])
 
     const onSync = () => {
         OfflineManager(isOnline)

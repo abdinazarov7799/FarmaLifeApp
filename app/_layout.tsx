@@ -18,7 +18,8 @@ import { Text } from "react-native";
 import {OfflineManager} from "@/lib/offlineManager";
 import {PersistQueryClientProvider} from "@tanstack/react-query-persist-client";
 import {MMKV} from "react-native-mmkv";
-
+import isToday from "dayjs/plugin/isToday";
+import dayjs from "dayjs";
 SplashScreen.preventAutoHideAsync();
 
 Text.defaultProps = Text.defaultProps || {};
@@ -68,6 +69,7 @@ const mmkvPersister = {
 
 
 function RootLayoutNav() {
+	dayjs.extend(isToday)
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
