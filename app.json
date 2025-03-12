@@ -2,7 +2,7 @@
   "expo": {
     "name": "FarmaLife",
     "slug": "FarmaLifeApp",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon.png",
     "scheme": "myapp",
@@ -24,13 +24,14 @@
       }
     },
     "android": {
+      "version": "1.0.3",
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-icon.png",
         "backgroundColor": "#0C5591"
       },
       "softwareKeyboardLayoutMode": "pan",
       "package": "uz.mediasolutions.farmalife",
-      "versionCode": 2,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

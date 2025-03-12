@@ -28,7 +28,14 @@
     "preview3": {
       "developmentClient": true
     },
-    "production": {}
+    "production": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "VERSION_CODE": "4"
+        }
+      }
+    }
   },
   "submit": {
     "production": {}
