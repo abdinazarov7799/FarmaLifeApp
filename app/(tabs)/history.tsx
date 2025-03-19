@@ -62,20 +62,28 @@ export default function HistoryScreen() {
         }
     })
 
-    useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-                <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
-                    {/*<TouchableOpacity>*/}
-                    {/*    <SearchIcon width={20} height={20} />*/}
-                    {/*</TouchableOpacity>*/}
-                    <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/history')}>
-                        <FilterIcon width={20} height={20} />
-                    </TouchableOpacity>
-                </View>
-            )
-        });
-    }, [navigation]);
+    // useLayoutEffect(() => {
+    //     navigation.setOptions({
+    //         headerRight: () => (
+    //             <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
+    //                 {/*<TouchableOpacity>*/}
+    //                 {/*    <SearchIcon width={20} height={20} />*/}
+    //                 {/*</TouchableOpacity>*/}
+    //                 <TouchableOpacity onPress={() => {
+    //                     console.log(activeTab,'aaa')
+    //                     router.push({
+    //                         pathname: "/filter",
+    //                         params: {
+    //                             redirect: `/history?tab=${activeTab}`
+    //                         }
+    //                     })
+    //                 }}>
+    //                     <FilterIcon width={20} height={20} />
+    //                 </TouchableOpacity>
+    //             </View>
+    //         )
+    //     });
+    // }, [navigation,activeTab]);
 
     if (isLoading || isLoadingStocks) return <Loader />;
 

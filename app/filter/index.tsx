@@ -14,7 +14,7 @@ const FilterScreen = () => {
     const [toDate, setToDate] = useState(new Date());
     const [openFrom, setOpenFrom] = useState(false);
     const [openTo, setOpenTo] = useState(false);
-    console.log(redirect,'redirect')
+
     const handleSave = () => {
         router.push({
             pathname: redirect ?? "/",

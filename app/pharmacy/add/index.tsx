@@ -21,6 +21,8 @@ export default function PharmacyAddScreen () {
     const [photoUrl, setPhotoUrl] = useState(null);
     const [location, setLocation] = useState(null);
     const [isOpenCamera, setIsOpenCamera] = useState(false);
+    const [name, setName] = useState(null);
+    const [inn,setInn] = useState(null);
 
     const {data:regions,isPending:isPendingRegions} = useFetchRequest({
         queryKey: "api/app/regions",
@@ -53,12 +55,18 @@ export default function PharmacyAddScreen () {
         const locationData = await Location.getCurrentPositionAsync({});
         setLocation({ lat: locationData.coords.latitude, lng: locationData.coords.longitude });
     };
-    const validationSchema = Yup.object().shape({
-        name: Yup.string().required("Dorixona nomi majburiy"),
-        inn: Yup.string().required("INN nomi majburiy"),
-    });
+    // const validationSchema = Yup.object().shape({
+    //     name: Yup.string().required("Dorixona nomi majburiy"),
+    //     inn: Yup.string().required("INN nomi majburiy"),
+    // });
 
     const onSubmit = (values) => {
+        if (!name) {
+            return Alert.alert(t("Xatolik"), t("Iltimos, dorixona nomini kiriting."));
+        }
+        if (!inn) {
+            return Alert.alert(t("Xatolik"), t("Iltimos, inn kiriting."));
+        }
         if (!photoUrl) {
             return Alert.alert(t("Xatolik"), t("Iltimos, rasmini yuklang."));
         }
@@ -68,10 +76,10 @@ export default function PharmacyAddScreen () {
         mutate({
             endpoint: 'api/app/pharmacies/add',
             attributes: {
-                name: get(values, 'name'),
+                name,
                 districtId: selectedDistrict,
                 photoUrl: photoUrl,
-                inn: get(values, 'inn'),
+                inn,
                 lat: get(location,'lat'),
                 lng: get(location,'lng'),
             }
@@ -114,10 +122,8 @@ export default function PharmacyAddScreen () {
 
             <View style={styles.container}>
                 <Formik
-                    initialValues={{
-                        name: "",
-                    }}
-                    validationSchema={validationSchema}
+                    initialValues={{}}
+                    // validationSchema={validationSchema}
                     onSubmit={onSubmit}
                 >
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
@@ -180,8 +186,12 @@ export default function PharmacyAddScreen () {
                             <TextInput
                                 style={styles.input}
                                 placeholder={t("Dorixona nomi")}
-                                value={values.name}
-                                onChangeText={handleChange("name")}
+                                value={name}
+                                onChangeText={(text) => {
+                                    const onChange = handleChange("name")
+                                    onChange(text)
+                                    setName(text)
+                                }}
                                 onBlur={handleBlur("name")}
                             />
                             {touched.name && errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
@@ -193,8 +203,12 @@ export default function PharmacyAddScreen () {
                             <TextInput
                                 style={styles.input}
                                 placeholder={t("INN")}
-                                value={values.inn}
-                                onChangeText={handleChange("inn")}
+                                value={inn}
+                                onChangeText={(value) => {
+                                    const onChange = handleChange("inn")
+                                    onChange(value)
+                                    setInn(value)
+                                }}
                                 onBlur={handleBlur("inn")}
                             />
                             {touched.inn && errors.inn && <Text style={styles.errorText}>{errors.inn}</Text>}

@@ -29,12 +29,7 @@
       "developmentClient": true
     },
     "production": {
-      "android": {
-        "gradleCommand": ":app:assembleRelease",
-        "env": {
-          "VERSION_CODE": "4"
-        }
-      }
+      "autoIncrement": true
     }
   },
   "submit": {

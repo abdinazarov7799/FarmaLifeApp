@@ -20,6 +20,7 @@ export default function PharmacyAddScreen () {
     const [photoUrl, setPhotoUrl] = useState(null);
     const [isOpenCamera, setIsOpenCamera] = useState(false);
     const [location, setLocation] = useState(null);
+    const [name, setName] = useState(null);
 
     const {data:regions,isPending:isPendingRegions} = useFetchRequest({
         queryKey: "api/app/regions",
@@ -52,11 +53,14 @@ export default function PharmacyAddScreen () {
         const locationData = await Location.getCurrentPositionAsync({});
         setLocation({ lat: locationData.coords.latitude, lng: locationData.coords.longitude });
     };
-    const validationSchema = Yup.object().shape({
-        name: Yup.string().required("Klinika nomi majburiy"),
-    });
+    // const validationSchema = Yup.object().shape({
+    //     name: Yup.string().required("Klinika nomi majburiy"),
+    // });
 
     const onSubmit = (values) => {
+        if (!name) {
+            return Alert.alert(t("Xatolik"), t("Iltimos, klinika nomini kiriting."));
+        }
         if (!photoUrl) {
             return Alert.alert(t("Xatolik"), t("Iltimos, klinika rasmini yuklang."));
         }
@@ -66,7 +70,7 @@ export default function PharmacyAddScreen () {
         mutate({
             endpoint: 'api/app/med-institution/add',
             attributes: {
-                name: get(values, 'name'),
+                name: name ?? get(values, 'name'),
                 districtId: selectedDistrict,
                 photoUrl: photoUrl,
                 lat: get(location,'lat'),
@@ -110,10 +114,8 @@ export default function PharmacyAddScreen () {
 
             <View style={styles.container}>
                 <Formik
-                    initialValues={{
-                        name: "",
-                    }}
-                    validationSchema={validationSchema}
+                    initialValues={{}}
+                    // validationSchema={validationSchema}
                     onSubmit={onSubmit}
                 >
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
@@ -175,9 +177,13 @@ export default function PharmacyAddScreen () {
                             </View>
                             <TextInput
                                 style={styles.input}
-                                placeholder="Klinika nomi"
-                                value={values.name}
-                                onChangeText={handleChange("name")}
+                                placeholder={t("Klinika nomi")}
+                                value={name}
+                                onChangeText={(text) => {
+                                    const onChange = handleChange("name")
+                                    onChange(text)
+                                    setName(text)
+                                }}
                                 onBlur={handleBlur("name")}
                             />
                             {touched.name && errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
