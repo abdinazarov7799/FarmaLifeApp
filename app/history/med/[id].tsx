@@ -9,7 +9,7 @@ import {
     ActivityIndicator,
     RefreshControl
 } from "react-native";
-import React from "react";
+import React, {useState} from "react";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import FilterIcon from "@/assets/icons/filter.svg";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
@@ -17,9 +17,14 @@ import {get} from "lodash";
 import dayjs from "dayjs";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
+import FilterModal from "@/components/filter";
+import Loader from "@/components/shared/Loader";
 
 export default function HistoryView() {
-    const { id, title, from, to } = useLocalSearchParams();
+    const { id, title } = useLocalSearchParams();
+    const [from,setFrom] = useState(null)
+    const [to,setTo] = useState(null)
+    const [isOpen,setIsOpen] = useState(false);
 
     const {
         data,
@@ -38,6 +43,10 @@ export default function HistoryView() {
         }
     })
 
+    if (isLoading) {
+        return <Loader />
+    }
+
     return (
         <SafeAreaView style={{flex: 1,backgroundColor: "#fff"}}>
             <View style={styles.header}>
@@ -45,11 +54,16 @@ export default function HistoryView() {
                     <ArrowLeft width={24} height={24} />
                 </Pressable>
                 <Text style={styles.headerTitle}>{title}</Text>
-                <View></View>
-                {/*<TouchableOpacity onPress={() => router.push(`/filter?redirect=/history/med/${id}?title=${title}&a=b`)}>*/}
-                {/*    <FilterIcon width={20} height={20} />*/}
-                {/*</TouchableOpacity>*/}
+                <TouchableOpacity onPress={() => setIsOpen(true)}>
+                    <FilterIcon width={20} height={20} />
+                </TouchableOpacity>
             </View>
+            <FilterModal
+                isOpen={isOpen}
+                setFrom={setFrom}
+                setIsOpen={setIsOpen}
+                setTo={setTo}
+            />
 
             <View style={styles.container}>
                 <FlatList

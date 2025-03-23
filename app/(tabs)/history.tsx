@@ -11,16 +11,19 @@ import Loader from "@/components/shared/Loader";
 import {get, isEmpty} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {router, useLocalSearchParams, useNavigation} from "expo-router";
-import SearchIcon from '@/assets/icons/search.svg'
 import FilterIcon from '@/assets/icons/filter.svg'
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 import dayjs from "dayjs";
+import FilterModal from "@/components/filter";
 
 export default function HistoryScreen() {
     const { t } = useTranslation();
-    const { tab, from, to } = useLocalSearchParams();
+    const { tab } = useLocalSearchParams();
     const navigation = useNavigation();
     const [activeTab, setActiveTab] = useState("stocks");
+    const [from,setFrom] = useState(null)
+    const [to,setTo] = useState(null)
+    const [isOpen,setIsOpen] = useState(false);
 
     useEffect(() => {
       if (!isEmpty(tab)) {
@@ -62,28 +65,17 @@ export default function HistoryScreen() {
         }
     })
 
-    // useLayoutEffect(() => {
-    //     navigation.setOptions({
-    //         headerRight: () => (
-    //             <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
-    //                 {/*<TouchableOpacity>*/}
-    //                 {/*    <SearchIcon width={20} height={20} />*/}
-    //                 {/*</TouchableOpacity>*/}
-    //                 <TouchableOpacity onPress={() => {
-    //                     console.log(activeTab,'aaa')
-    //                     router.push({
-    //                         pathname: "/filter",
-    //                         params: {
-    //                             redirect: `/history?tab=${activeTab}`
-    //                         }
-    //                     })
-    //                 }}>
-    //                     <FilterIcon width={20} height={20} />
-    //                 </TouchableOpacity>
-    //             </View>
-    //         )
-    //     });
-    // }, [navigation,activeTab]);
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <View style={{display: "flex",flexDirection: "row",alignItems: "center",gap: 24,marginRight: 16}}>
+                    <TouchableOpacity onPress={() => setIsOpen(true)}>
+                        <FilterIcon width={20} height={20} />
+                    </TouchableOpacity>
+                </View>
+            )
+        });
+    }, [navigation]);
 
     if (isLoading || isLoadingStocks) return <Loader />;
 
@@ -107,7 +99,12 @@ export default function HistoryScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
-
+            <FilterModal
+                isOpen={isOpen}
+                setFrom={setFrom}
+                setIsOpen={setIsOpen}
+                setTo={setTo}
+            />
             {
                 activeTab === "stocks" ? (
                     <FlatList

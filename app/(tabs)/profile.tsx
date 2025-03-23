@@ -1,11 +1,12 @@
 import {
-    Image, Modal, Pressable, SafeAreaView,
+    Dimensions,
+    Image, Linking, Modal, Pressable, SafeAreaView,
     StyleSheet, Text, TouchableOpacity,
     View,
 } from "react-native";
 import React, {useState} from "react";
 import {useAuthStore} from "@/store";
-import {get} from "lodash";
+import {get, isNil} from "lodash";
 import {useTranslation} from "react-i18next";
 import i18n from "@/lib/i18n";
 import {Feather, Ionicons} from "@expo/vector-icons";
@@ -35,6 +36,12 @@ export default function ProfileScreen() {
             clearAuthData();
             router.push("/auth");
         })
+    }
+
+    const handleNavigate = () => {
+        if (!isNil(get(user,'copyrightUrl'))){
+            Linking.openURL(get(user,'copyrightUrl','')).then(r => {}).catch(reason => {})
+        }
     }
 
     return (
@@ -101,6 +108,13 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.logOutButton} onPress={() => setIsOpenModal(true)}>
                 <Image source={require('@/assets/icons/logout-icon.png')} width={24} height={24} />
                 <Text style={styles.logOutText}>{t("Chiqish")}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={{position: "absolute", bottom: 30,display: "flex", justifyContent:"center",alignItems: "center",width: Dimensions.get("window").width}}
+                onPress={handleNavigate}
+            >
+                <Text style={styles.copyrightText}>{t("© 2025 Создано в Media Solutions")}</Text>
             </TouchableOpacity>
             <SafeAreaView style={styles.centeredView}>
                 <Modal
@@ -231,6 +245,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 500,
         color: "#222222"
+    },
+    copyrightText: {
+        fontSize: 16,
+        fontWeight: 400,
+        color: "#215ca0",
+        textDecorationLine: "underline"
     },
     centeredView: {
         flex: 1,

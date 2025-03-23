@@ -8,14 +8,14 @@ import {
     FlatList,
     Modal,
     RefreshControl,
-    ActivityIndicator
+    ActivityIndicator, Alert, Linking
 } from "react-native";
 import React, {useState} from "react";
 import CloseIcon from "@/assets/icons/close.svg";
 import {useTranslation} from "react-i18next";
 import Loader from "@/components/shared/Loader";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import {get, isNil, isNull} from "lodash";
+import {get, isArray, isNil, isNull} from "lodash";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import VisitIcon from "@/assets/icons/visit-icon.svg";
 import dayjs from "dayjs";
@@ -25,6 +25,7 @@ import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 import {useAuthStore, useNetworkStore} from "@/store";
 import CheckIcon from "@/assets/icons/check.svg";
 import DoubleCheckIcon from "@/assets/icons/check-icon.svg";
+import * as Location from "expo-location";
 
 export default function MedView() {
     const { id, title } = useLocalSearchParams();
@@ -43,15 +44,37 @@ export default function MedView() {
         queryKey: `doctors/${id}`,
     })
 
-    const handleVisit = () => {
+    const handleVisit = async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status !== "granted") {
+            Alert.alert(
+                t("Lokatsiya ruxsati talab qilinadi"),
+                t("Ilova lokatsiyani ishlatish uchun ruxsat so‘raydi. Ruxsat bermoqchimisiz?"),
+                [
+                    { text: t("Bekor qilish"), style: "cancel" },
+                    { text: t("Sozlamalarga o‘tish"), onPress: () => Linking.openSettings() }
+                ]
+            );
+            return;
+        }
+
+        const locationData = await Location.getCurrentPositionAsync({});
+
         if (isOnline) {
             mutate({
-                endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}`
+                endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}&lat=${locationData.coords.latitude}&lng=${locationData.coords.longitude}`
             }, {
                 onSuccess: (res) => {
                     setSelected(null);
                 },
                 onError: (e) => {
+                    const messages = get(e,'response.data.errors',[])
+                    if (isArray(messages)){
+                        messages?.map(message=> {
+                            Alert.alert(t(get(message,'errorMsg')));
+                        })
+                    }
                 }
             });
         }else {
