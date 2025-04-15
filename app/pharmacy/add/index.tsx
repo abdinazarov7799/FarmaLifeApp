@@ -217,7 +217,7 @@ export default function PharmacyAddScreen () {
                             <View style={{display: "flex",flexDirection: "row", alignItems: "center", justifyContent: "space-between",marginBottom: 20}}>
                                 <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                                     <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
-                                    <Text style={styles.label}>{t("Klinika rasmini kiriting")}</Text>
+                                    <Text style={styles.label}>{t("Dorixona rasmini kiriting")}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.button} onPress={() => setIsOpenCamera(true)}>
                                     <Text style={styles.buttonText}>{t("Kiritish")}</Text>
@@ -228,7 +228,7 @@ export default function PharmacyAddScreen () {
                             <View style={{display: "flex",flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
                                 <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                                     <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
-                                    <Text style={styles.label}>{t("Klinika joylashuvini kiriting")}</Text>
+                                    <Text style={styles.label}>{t("Dorixona joylashuvini kiriting")}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.button} onPress={getCurrentLocation}>
                                     <Text style={styles.buttonText}>{t("Kiritish")}</Text>

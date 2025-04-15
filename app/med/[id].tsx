@@ -10,7 +10,7 @@ import {
     RefreshControl,
     ActivityIndicator, Alert, Linking
 } from "react-native";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import CloseIcon from "@/assets/icons/close.svg";
 import {useTranslation} from "react-i18next";
 import Loader from "@/components/shared/Loader";
@@ -22,17 +22,35 @@ import dayjs from "dayjs";
 import usePostQuery from "@/hooks/api/usePostQuery";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
-import {useAuthStore, useNetworkStore} from "@/store";
+import {useAuthStore} from "@/store";
 import CheckIcon from "@/assets/icons/check.svg";
 import DoubleCheckIcon from "@/assets/icons/check-icon.svg";
 import * as Location from "expo-location";
+import * as Network from "expo-network";
 
 export default function MedView() {
     const { id, title } = useLocalSearchParams();
     const {t} = useTranslation();
     const [selected, setSelected] = useState(null);
     const {addToOfflineVisits} = useAuthStore();
-    const {isOnline} = useNetworkStore()
+    const [isOnline, setIsOnline] = useState(false);
+
+    useEffect(() => {
+        const checkNetworkStatus = async () => {
+            const networkState = await Network.getNetworkStateAsync();
+            setIsOnline(networkState.isConnected);
+        };
+        checkNetworkStatus();
+
+        const unsubscribe = Network.addNetworkStateListener((networkState) => {
+            setIsOnline(networkState.isConnected);
+        });
+
+        return () => {
+            unsubscribe.remove();
+        };
+    }, []);
+
 
     const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
         key: `doctors/${id}`,
@@ -71,7 +89,7 @@ export default function MedView() {
                 onError: (e) => {
                     const messages = get(e,'response.data.errors',[])
                     if (isArray(messages)){
-                        messages?.map(message=> {
+                        messages?.forEach(message=> {
                             Alert.alert(t(get(message,'errorMsg')));
                         })
                     }
@@ -81,7 +99,10 @@ export default function MedView() {
             addToOfflineVisits({
                 id: get(selected,'id'),
                 createdTime: dayjs().unix(),
+                lat: locationData.coords.latitude,
+                lng: locationData.coords.longitude
             });
+            Alert.alert(t("Diqqat!"), t("Visitlar offline rejimda saqlandi. Internet qaytganda yuklanadi."));
             setSelected(null);
         }
     }

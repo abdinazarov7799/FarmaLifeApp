@@ -1,10 +1,10 @@
 import {
-    ActivityIndicator,
-    FlatList, Pressable, RefreshControl, ScrollView,
-    StyleSheet, TouchableOpacity,
+    ActivityIndicator, Alert,
+    FlatList, Pressable, RefreshControl,
+    StyleSheet,
     View,
 } from 'react-native';
-import React, {useLayoutEffect} from "react";
+import React, {useEffect, useState} from "react";
 import { Text } from "react-native";
 import {useTranslation} from "react-i18next";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
@@ -12,20 +12,18 @@ import Loader from "@/components/shared/Loader";
 import {get, isArray, isEmpty} from "lodash";
 import dayjs from "dayjs";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
-import {useNavigation, useRouter} from "expo-router";
-import FilterIcon from "@/assets/icons/filter.svg";
 import HumanIcon from "@/assets/icons/human.svg";
 import PillsIcon from "@/assets/icons/Pills.svg";
 import RefreshIcon from "@/assets/icons/refresh.svg";
-import {useAuthStore, useNetworkStore} from "@/store";
+import {useAuthStore} from "@/store";
 import {OfflineManager} from "@/lib/offlineManager";
+import * as Network from "expo-network";
 
 export default function HomeScreen() {
     const {t} = useTranslation();
-    const {offlineVisits,isOfflineSyncing} = useAuthStore();
-    const {isOnline} = useNetworkStore()
-    const navigation = useNavigation();
-    const router = useRouter();
+    const {offlineVisits,isOfflineSyncing,offlineStocks} = useAuthStore();
+    const [isOnline, setIsOnline] = useState(false);
+
     const {data,isPending,refetch,isRefetching} = useFetchRequest({
         queryKey: "home",
         endpoint: "api/app/home/"
@@ -33,19 +31,30 @@ export default function HomeScreen() {
 
     const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
     const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
-    //
-    // useLayoutEffect(() => {
-    //     navigation.setOptions({
-    //         headerRight: () => (
-    //             <TouchableOpacity onPress={() => router.navigate('/filter?redirect=/')} style={{marginRight:16}}>
-    //                 <FilterIcon width={20} height={20} />
-    //             </TouchableOpacity>
-    //         )
-    //     });
-    // },[navigation])
 
-    const onSync = () => {
-        OfflineManager(isOnline)
+    useEffect(() => {
+        const checkNetworkStatus = async () => {
+            const networkState = await Network.getNetworkStateAsync();
+            setIsOnline(networkState.isConnected);
+        };
+        checkNetworkStatus();
+
+        const unsubscribe = Network.addNetworkStateListener((networkState) => {
+            setIsOnline(networkState.isConnected);
+        });
+
+        return () => {
+            unsubscribe.remove();
+        };
+    }, []);
+
+    const onSync = async () => {
+        try {
+            await OfflineManager(isOnline, t);
+        } catch (e) {
+            console.error("OfflineManager error:", e);
+            Alert.alert(t("Xatolik"), t("Sinxronizatsiya amalga oshmadi"));
+        }
     }
 
     if (isPending) return <Loader />;
@@ -123,7 +132,7 @@ export default function HomeScreen() {
                     </View>
                 </View>
             </View>
-            <View style={[styles.floatButton,{backgroundColor: isEmpty(offlineVisits) ? "#0C5591" : "rgb(198,169,24)"}]}>
+            <View style={[styles.floatButton,{backgroundColor: (isEmpty(offlineVisits) || isEmpty(offlineStocks)) ? "#0C5591" : "rgb(198,169,24)"}]}>
                 {
                     isOfflineSyncing ? <ActivityIndicator size={"small"} color="#fff" /> : (
                         <Pressable onPress={onSync}>

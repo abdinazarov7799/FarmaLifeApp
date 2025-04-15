@@ -1,21 +1,6 @@
-import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
-import {createJSONStorage, persist,} from 'zustand/middleware';
-
-const storage = new MMKV();
-
-const mmkvStorage = {
-    setItem: (name:any, value:any) => {
-        return storage.set(name, value);
-    },
-    getItem: (name:any) => {
-        const value = storage.getString(name);
-        return value ?? null;
-    },
-    removeItem: (name:any) => {
-        return storage.delete(name);
-    },
-};
+import {createJSONStorage, persist} from 'zustand/middleware';
+import {storageAdapter} from "@/lib/storage";
 
 export const useAuthStore = create(
     persist(
@@ -48,10 +33,10 @@ export const useAuthStore = create(
                 set({ offlineStocks: [...get().offlineStocks, stock] });
             },
 
-            removeFromOfflineStocks: (stockId) => {
+            removeFromOfflineStocks: (pharmacyId) => {
                 set({
                     offlineStocks: get().offlineStocks.filter(
-                        (stock) => stock.id !== stockId
+                        (stock) => stock.pharmacyId !== pharmacyId
                     ),
                 });
             },
@@ -60,18 +45,11 @@ export const useAuthStore = create(
                 user: null,
                 accessToken: null,
                 refreshToken: null,
-                offlineVisits: [],
-                offlineStocks: [],
             }),
         }),
         {
             name: 'auth-store',
-            storage: createJSONStorage(() => mmkvStorage),
+            storage: createJSONStorage(() => storageAdapter),
         },
     )
 );
-
-export const useNetworkStore = create((set) => ({
-    isOnline: true,
-    setIsOnline: (isOnline: boolean) => set({ isOnline }),
-}));

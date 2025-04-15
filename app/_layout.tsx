@@ -3,23 +3,26 @@ import {Stack} from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import {useEffect} from "react";
 import "react-native-reanimated";
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {QueryClient} from "@tanstack/react-query";
 import {extendTheme, NativeBaseProvider} from "native-base";
 import "../lib/i18n";
 import {useTranslation} from "react-i18next";
 import {BottomSheetModalProvider} from "@gorhom/bottom-sheet";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {StatusBar} from "expo-status-bar";
-import {useAuthStore, useNetworkStore} from "@/store";
+import {useAuthStore} from "@/store";
 import AppUpdateChecker from "@/components/AppUpdateChecker";
 import React from "react";
 import * as Network from "expo-network";
 import { Text } from "react-native";
-import {OfflineManager} from "@/lib/offlineManager";
 import {PersistQueryClientProvider} from "@tanstack/react-query-persist-client";
-import {MMKV} from "react-native-mmkv";
 import isToday from "dayjs/plugin/isToday";
 import dayjs from "dayjs";
+import { onlineManager } from '@tanstack/react-query'
+import {createSyncStoragePersister} from "@tanstack/query-sync-storage-persister";
+import {storageAdapter} from "@/lib/storage";
+import {get, isString} from "lodash";
+
 SplashScreen.preventAutoHideAsync();
 
 Text.defaultProps = Text.defaultProps || {};
@@ -30,6 +33,27 @@ const theme = extendTheme({
 		heading: "Inter",
 		body: "Inter",
 		mono: "Inter",
+	},
+});
+
+onlineManager.setEventListener((setOnline) => {
+	const eventSubscription = Network.addNetworkStateListener((state) => {
+		setOnline(!!state.isConnected)
+	})
+	return eventSubscription.remove
+})
+
+const persister = createSyncStoragePersister({ storage: storageAdapter });
+
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			staleTime: 1000 * 60 * 5,
+			gcTime: 1000 * 60 * 60 * 48,
+			refetchOnWindowFocus: false,
+			refetchOnReconnect: true,
+			retry: 0,
+		},
 	},
 });
 
@@ -51,69 +75,16 @@ export default function RootLayout() {
 	return <RootLayoutNav />;
 }
 
-const storage = new MMKV();
-
-const mmkvPersister = {
-	persistClient: (client) => {
-		storage.set("react-query-cache", JSON.stringify(client));
-	},
-	restoreClient: () => {
-		const cache = storage.getString("react-query-cache");
-		return cache ? JSON.parse(cache) : undefined;
-	},
-	removeClient: () => {
-		storage.delete("react-query-cache");
-	},
-};
-
 
 
 function RootLayoutNav() {
 	dayjs.extend(isToday)
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: {
-				staleTime: 1000 * 60 * 5,
-				gcTime: 1000 * 60 * 60 * 24,
-				refetchOnWindowFocus: false,
-				refetchOnReconnect: true,
-				retry: 1,
-			},
-		},
-	});
 
 	const {i18n} = useTranslation();
-	const {lang,user} = useAuthStore()
-	const { setIsOnline, isOnline } = useNetworkStore();
-
-	useEffect(() => {
-		const checkNetworkStatus = async () => {
-			const networkState = await Network.getNetworkStateAsync();
-			setIsOnline(networkState.isConnected);
-		};
-		checkNetworkStatus();
-
-		const unsubscribe = Network.addNetworkStateListener((networkState) => {
-			setIsOnline(networkState.isConnected);
-		});
-
-		return () => {
-			unsubscribe.remove();
-		};
-	}, []);
-
-
-	useEffect(() => {
-		const syncOfflineData = async () => {
-			await OfflineManager(isOnline);
-		};
-
-		if (isOnline) {
-			syncOfflineData();
-		}
-	}, [isOnline]);
-
-
+	const {lang} = useAuthStore()
+	const store = storageAdapter.getItem('auth-store')
+	const parsedStore = isString(store) ? JSON.parse(store) : store
+	const user = get(parsedStore,'state.user')
 
 	const loadLanguage = async () => {
 		try {
@@ -130,8 +101,8 @@ function RootLayoutNav() {
 
 	return (
 		<>
-			<PersistQueryClientProvider client={queryClient} persistOptions={{ persister: mmkvPersister }}>
-				<QueryClientProvider client={queryClient}>
+			<PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+				{/*<QueryClientProvider client={queryClient}>*/}
 					<GestureHandlerRootView>
 						<NativeBaseProvider theme={theme}>
 							<AppUpdateChecker />
@@ -153,7 +124,7 @@ function RootLayoutNav() {
 							</BottomSheetModalProvider>
 						</NativeBaseProvider>
 					</GestureHandlerRootView>
-				</QueryClientProvider>
+				{/*</QueryClientProvider>*/}
 			</PersistQueryClientProvider>
 		</>
 	);

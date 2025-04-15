@@ -1,5 +1,5 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useState, useRef } from 'react';
+import {useState, useRef, useEffect} from 'react';
 import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import * as ImageManipulator from 'expo-image-manipulator';
 import CloseIcon from "@/assets/icons/close.svg"
@@ -7,16 +7,32 @@ import {useTranslation} from "react-i18next";
 import {request} from "@/lib/api";
 import {Button} from "native-base";
 import Loader from "@/components/shared/Loader";
-import {useNetworkStore} from "@/store";
+import * as Network from "expo-network";
 
 export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offlineSupport = false}) {
-    const { isOnline } = useNetworkStore();
     const [facing, setFacing] = useState<CameraType>('back');
     const [permission, requestPermission] = useCameraPermissions();
     const [cameraReady, setCameraReady] = useState(false);
     const cameraRef = useRef(null);
     const {t} = useTranslation();
     const [loading, setLoading] = useState(false);
+    const [isOnline, setIsOnline] = useState(false);
+
+    useEffect(() => {
+        const checkNetworkStatus = async () => {
+            const networkState = await Network.getNetworkStateAsync();
+            setIsOnline(networkState.isConnected);
+        };
+        checkNetworkStatus();
+
+        const unsubscribe = Network.addNetworkStateListener((networkState) => {
+            setIsOnline(networkState.isConnected);
+        });
+
+        return () => {
+            unsubscribe.remove();
+        };
+    }, []);
 
     if (!permission) {
         return <View />;

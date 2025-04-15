@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {
     View,
     Text,
@@ -21,14 +21,30 @@ import { Button } from "native-base";
 import { Formik } from "formik";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {AntDesign} from "@expo/vector-icons";
-import {useAuthStore, useNetworkStore} from "@/store";
-import {SafeAreaView} from "react-native-safe-area-context";
+import {useAuthStore} from "@/store";
+import * as Network from "expo-network";
 
 export default function StocksAddScreen() {
     const { t } = useTranslation();
     const { id, photoUrl } = useLocalSearchParams();
     const {addToOfflineStocks} = useAuthStore();
-    const {isOnline} = useNetworkStore();
+    const [isOnline, setIsOnline] = useState(false);
+
+    useEffect(() => {
+        const checkNetworkStatus = async () => {
+            const networkState = await Network.getNetworkStateAsync();
+            setIsOnline(networkState.isConnected);
+        };
+        checkNetworkStatus();
+
+        const unsubscribe = Network.addNetworkStateListener((networkState) => {
+            setIsOnline(networkState.isConnected);
+        });
+
+        return () => {
+            unsubscribe.remove();
+        };
+    }, []);
 
     const { data, isLoading, isRefreshing, onRefresh, onEndReached, isFetchingNextPage } = useInfiniteScroll({
         key: `drugs`,
@@ -47,7 +63,7 @@ export default function StocksAddScreen() {
         })
 
         if (!photoUrl) {
-            Alert.alert("Diqqat!", "Dorilarni qo'shish uchun rasm yuklash majburiy!");
+            Alert.alert(t("Diqqat!"), t("Dorilarni qo'shish uchun rasm yuklash majburiy!"));
             return;
         }
 
@@ -74,7 +90,7 @@ export default function StocksAddScreen() {
                 photoUrl: photoUrl,
                 drugs: drugsArray,
             });
-            Alert.alert("Diqqat!", "Dorilar offline rejimda saqlandi. Internet qaytganda yuklanadi.");
+            Alert.alert(t("Diqqat!"),t("Dorilar offline rejimda saqlandi. Internet qaytganda yuklanadi."));
             router.push("/pharmacies");
         }
     };

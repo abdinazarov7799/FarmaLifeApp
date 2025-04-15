@@ -1,5 +1,7 @@
 import axios from "axios";
 import {useAuthStore} from "@/store";
+import {storageAdapter} from "@/lib/storage";
+import {get, isString} from "lodash";
 
 const request = axios.create({
 	baseURL: 'https://farmalife.mediasolutions.uz',
@@ -7,7 +9,10 @@ const request = axios.create({
 
 request.interceptors.request.use(
 	async config => {
-		const accessToken = useAuthStore.getState().accessToken;
+		// const accessToken = useAuthStore.getState().accessToken;
+		const store = storageAdapter.getItem('auth-store')
+		const parsedStore = isString(store) ? JSON.parse(store) : store
+		const accessToken = get(parsedStore,'state.accessToken')
 		if (accessToken) {
 			config.headers.Authorization = `Bearer ${accessToken}`;
 		}
