@@ -85,9 +85,16 @@ export default function PharmacyAddScreen () {
             }
         }, {
             onSuccess: (res) => {
-                router.back()
+                Alert.alert(t("Ajoyib"), t("Muvofaqqiyatli saqlandi"));
+                router.back();
             },
-            onError: (e) => {
+            onError: (error) => {
+                const messages = get(error,'response.data.errors',[])
+                if (isArray(messages)){
+                    messages?.forEach(message=> {
+                        Alert.alert(t(get(message,'errorMsg','Xatolik')));
+                    })
+                }
             }
         });
     }
@@ -97,7 +104,10 @@ export default function PharmacyAddScreen () {
         setPhotoUrl(url);
         setIsOpenCamera(false);
     }}
-        onClose={() => setIsOpenCamera(false)} />
+        onClose={() => {
+            setIsOpenCamera(false)
+            setPhotoUrl(null);
+        }} />
 
     return (
         <View style={{flex: 1}}>

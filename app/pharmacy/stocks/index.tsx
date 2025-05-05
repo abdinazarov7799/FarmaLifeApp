@@ -8,14 +8,14 @@ import {
     RefreshControl,
     ActivityIndicator,
     FlatList,
-    TextInput, Alert,
+    TextInput, Alert, Linking,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import usePostQuery from "@/hooks/api/usePostQuery";
 import dayjs from "dayjs";
-import {get, isEmpty, isNil} from "lodash";
+import {get, isArray, isEmpty, isNil} from "lodash";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { Button } from "native-base";
 import { Formik } from "formik";
@@ -23,28 +23,29 @@ import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {AntDesign} from "@expo/vector-icons";
 import {useAuthStore} from "@/store";
 import * as Network from "expo-network";
+import * as Location from "expo-location";
 
 export default function StocksAddScreen() {
     const { t } = useTranslation();
     const { id, photoUrl } = useLocalSearchParams();
     const {addToOfflineStocks} = useAuthStore();
-    const [isOnline, setIsOnline] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
 
-    useEffect(() => {
-        const checkNetworkStatus = async () => {
-            const networkState = await Network.getNetworkStateAsync();
-            setIsOnline(networkState.isConnected);
-        };
-        checkNetworkStatus();
-
-        const unsubscribe = Network.addNetworkStateListener((networkState) => {
-            setIsOnline(networkState.isConnected);
-        });
-
-        return () => {
-            unsubscribe.remove();
-        };
-    }, []);
+    // useEffect(() => {
+    //     const checkNetworkStatus = async () => {
+    //         const networkState = await Network.getNetworkStateAsync();
+    //         setIsOnline(networkState.isConnected);
+    //     };
+    //     checkNetworkStatus();
+    //
+    //     const unsubscribe = Network.addNetworkStateListener((networkState) => {
+    //         setIsOnline(networkState.isConnected);
+    //     });
+    //
+    //     return () => {
+    //         unsubscribe.remove();
+    //     };
+    // }, []);
 
     const { data, isLoading, isRefreshing, onRefresh, onEndReached, isFetchingNextPage } = useInfiniteScroll({
         key: `drugs`,
@@ -54,7 +55,23 @@ export default function StocksAddScreen() {
 
     const { mutate, isPending: isPendingMutate } = usePostQuery({});
 
-    const onSubmit = (values) => {
+    const onSubmit = async (values) => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status !== "granted") {
+            Alert.alert(
+                t("Lokatsiya ruxsati talab qilinadi"),
+                t("Ilova lokatsiyani ishlatish uchun ruxsat so‘raydi. Ruxsat bermoqchimisiz?"),
+                [
+                    { text: t("Bekor qilish"), style: "cancel" },
+                    { text: t("Sozlamalarga o‘tish"), onPress: () => Linking.openSettings() }
+                ]
+            );
+            return;
+        }
+
+        const locationData = await Location.getCurrentPositionAsync({});
+
         const drugsArray = data?.map(item => {
             return {
                 drugId: get(item,'id'),
@@ -76,11 +93,23 @@ export default function StocksAddScreen() {
                         createdTime: dayjs().unix(),
                         photoUrl: photoUrl,
                         drugs: drugsArray,
+                        lat: locationData.coords.latitude,
+                        lng: locationData.coords.longitude
                     },
                 },
                 {
-                    onSuccess: () => { router.push("/pharmacies"); },
-                    onError: () => { console.error("Xatolik yuz berdi!"); },
+                    onSuccess: () => {
+                        Alert.alert(t("Ajoyib"), t("Muvofaqqiyatli saqlandi"));
+                        router.push("/pharmacies");
+                        },
+                    onError: (error) => {
+                        const messages = get(error,'response.data.errors',[])
+                        if (isArray(messages)){
+                            messages?.forEach(message=> {
+                                Alert.alert(t(get(message,'errorMsg','Xatolik')));
+                            })
+                        }
+                    }
                 }
             );
         } else {
@@ -89,6 +118,8 @@ export default function StocksAddScreen() {
                 createdTime: dayjs().unix(),
                 photoUrl: photoUrl,
                 drugs: drugsArray,
+                lat: locationData.coords.latitude,
+                lng: locationData.coords.longitude
             });
             Alert.alert(t("Diqqat!"),t("Dorilar offline rejimda saqlandi. Internet qaytganda yuklanadi."));
             router.push("/pharmacies");
@@ -96,7 +127,7 @@ export default function StocksAddScreen() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: "#F1F5F8" }}>
+        <View style={{ flex: 1, backgroundColor: "#F1F5F8", paddingBottom: 70 }}>
             <View style={styles.header}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Pressable onPress={() => router.back()}>

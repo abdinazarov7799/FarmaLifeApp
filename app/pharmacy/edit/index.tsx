@@ -1,26 +1,47 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {View, Text, StyleSheet, Pressable, TouchableOpacity, TextInput, Image, Alert, Linking} from "react-native";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {useTranslation} from "react-i18next";
 // @ts-ignore
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
-import usePostQuery from "@/hooks/api/usePostQuery";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
 import {get, isArray} from "lodash";
 import { Formik } from "formik";
-import * as Yup from "yup";
 import * as Location from "expo-location";
-import {Button,Select} from "native-base";
+import {Button, Select} from "native-base";
 import CameraScreen from "@/components/camera";
+import usePatchQuery from "@/hooks/api/usePatchQuery";
 
 export default function PharmacyAddScreen () {
     const {t} = useTranslation();
+    const { id } = useLocalSearchParams();
     const [selectedRegion, setSelectedRegion] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [photoUrl, setPhotoUrl] = useState(null);
-    const [isOpenCamera, setIsOpenCamera] = useState(false);
     const [location, setLocation] = useState(null);
+    const [isOpenCamera, setIsOpenCamera] = useState(false);
     const [name, setName] = useState(null);
+    const [inn,setInn] = useState(null);
+
+    const {data,isPending} = useFetchRequest({
+        queryKey: `api/app/pharmacies/${id}`,
+        endpoint: `api/app/pharmacies/get/${id}`,
+        enabled: !!id,
+    })
+
+    useEffect(() => {
+        setName(get(data,'name'))
+        setInn(get(data,'inn'))
+        setPhotoUrl(get(data,'photoUrl'))
+        setSelectedRegion(get(data,'regionId'))
+        setSelectedDistrict(get(data,'districtId'))
+        setLocation(
+            {
+                lat: get(data,'lat'),
+                lng: get(data,'lng'),
+            }
+        )
+    }, [data]);
 
     const {data:regions,isPending:isPendingRegions} = useFetchRequest({
         queryKey: "api/app/regions",
@@ -33,7 +54,7 @@ export default function PharmacyAddScreen () {
         enabled: !!selectedRegion,
     })
 
-    const {mutate,isPending:isPending} = usePostQuery({})
+    const {mutate,isPending:isPendingPost} = usePatchQuery({})
 
     const getCurrentLocation = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -54,25 +75,30 @@ export default function PharmacyAddScreen () {
         setLocation({ lat: locationData.coords.latitude, lng: locationData.coords.longitude });
     };
     // const validationSchema = Yup.object().shape({
-    //     name: Yup.string().required("Klinika nomi majburiy"),
+    //     name: Yup.string().required("Dorixona nomi majburiy"),
+    //     inn: Yup.string().required("INN nomi majburiy"),
     // });
 
     const onSubmit = (values) => {
         if (!name) {
-            return Alert.alert(t("Xatolik"), t("Iltimos, klinika nomini kiriting."));
+            return Alert.alert(t("Xatolik"), t("Iltimos, dorixona nomini kiriting."));
+        }
+        if (!inn) {
+            return Alert.alert(t("Xatolik"), t("Iltimos, inn kiriting."));
         }
         if (!photoUrl) {
-            return Alert.alert(t("Xatolik"), t("Iltimos, klinika rasmini yuklang."));
+            return Alert.alert(t("Xatolik"), t("Iltimos, rasmini yuklang."));
         }
         if (!location) {
             return Alert.alert(t("Xatolik"), t("Iltimos, joylashuvni kiriting."));
         }
         mutate({
-            endpoint: 'api/app/med-institution/add',
+            endpoint: `api/app/pharmacies/edit/${id}`,
             attributes: {
-                name: name ?? get(values, 'name'),
+                name,
                 districtId: selectedDistrict,
                 photoUrl: photoUrl,
+                inn,
                 lat: get(location,'lat'),
                 lng: get(location,'lng'),
             }
@@ -92,13 +118,15 @@ export default function PharmacyAddScreen () {
         });
     }
 
-    if (isOpenCamera) return <CameraScreen setPhotoUrl={(url) => {
+    if (isOpenCamera) return <CameraScreen
+        setPhotoUrl={(url) => {
         setPhotoUrl(url);
         setIsOpenCamera(false);
-    }} onClose={() => {
-        setIsOpenCamera(false)
-        setPhotoUrl(null);
-    }} />
+    }}
+        onClose={() => {
+            setIsOpenCamera(false)
+            setPhotoUrl(null);
+        }} />
 
     return (
         <View style={{flex: 1}}>
@@ -107,7 +135,7 @@ export default function PharmacyAddScreen () {
                     <Pressable onPress={() => router.back()}>
                         <ArrowLeft width={24} height={24} />
                     </Pressable>
-                    <Text style={styles.headerTitle}>{t("Klinika qo’shish")}</Text>
+                    <Text style={styles.headerTitle}>{get(data,'name')}</Text>
                 </View>
                 <View style={{display: "flex",flexDirection: "row",alignItems: "center", justifyContent: "space-between"}}>
                     <View style={{display: "flex",flexDirection: "row", alignItems: "center", gap: 10}}>
@@ -182,11 +210,11 @@ export default function PharmacyAddScreen () {
 
                             <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                                 <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
-                                <Text style={styles.label}>{t("Klinika nomi")}</Text>
+                                <Text style={styles.label}>{t("Dorixona nomi")}</Text>
                             </View>
                             <TextInput
                                 style={styles.input}
-                                placeholder={t("Klinika nomi")}
+                                placeholder={t("Dorixona nomi")}
                                 value={name}
                                 onChangeText={(text) => {
                                     const onChange = handleChange("name")
@@ -197,11 +225,28 @@ export default function PharmacyAddScreen () {
                             />
                             {touched.name && errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
+                            <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
+                                <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
+                                <Text style={styles.label}>{t("INN")}</Text>
+                            </View>
+                            <TextInput
+                                style={styles.input}
+                                placeholder={t("INN")}
+                                value={inn}
+                                onChangeText={(value) => {
+                                    const onChange = handleChange("inn")
+                                    onChange(value)
+                                    setInn(value)
+                                }}
+                                onBlur={handleBlur("inn")}
+                            />
+                            {touched.inn && errors.inn && <Text style={styles.errorText}>{errors.inn}</Text>}
+
 
                             <View style={{display: "flex",flexDirection: "row", alignItems: "center", justifyContent: "space-between",marginBottom: 20}}>
                                 <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                                     <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
-                                    <Text style={styles.label}>{t("Klinika rasmini kiriting")}</Text>
+                                    <Text style={styles.label}>{t("Dorixona rasmini kiriting")}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.button} onPress={() => setIsOpenCamera(true)}>
                                     <Text style={styles.buttonText}>{t("Kiritish")}</Text>
@@ -212,7 +257,7 @@ export default function PharmacyAddScreen () {
                             <View style={{display: "flex",flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
                                 <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
                                     <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
-                                    <Text style={styles.label}>{t("Klinika joylashuvini kiriting")}</Text>
+                                    <Text style={styles.label}>{t("Dorixona joylashuvini kiriting")}</Text>
                                 </View>
                                 <TouchableOpacity style={styles.button} onPress={getCurrentLocation}>
                                     <Text style={styles.buttonText}>{t("Kiritish")}</Text>
@@ -224,7 +269,7 @@ export default function PharmacyAddScreen () {
                                 </Text>
                             )}
 
-                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPending}>
+                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost}>
                                 <Text style={styles.submitButtonText}>{t("Saqlash")}</Text>
                             </Button>
                         </View>
@@ -297,17 +342,6 @@ const styles = StyleSheet.create({
         marginTop: 6,
         marginBottom: 24
     },
-    selectBox: {
-        backgroundColor: "#FFF",
-        marginTop: 6,
-        marginBottom: 24,
-        borderRadius: 12,
-    },
-    select: {
-        height: 44,
-        fontSize: 16,
-        lineHeight: 20,
-    },
     button: {
         backgroundColor: "#0C5591",
         paddingVertical: 6,
@@ -348,5 +382,16 @@ const styles = StyleSheet.create({
     errorText: {
         color: "red",
         fontSize: 12,
+    },
+    selectBox: {
+        backgroundColor: "#FFF",
+        marginTop: 6,
+        marginBottom: 24,
+        borderRadius: 12,
+    },
+    select: {
+        height: 44,
+        fontSize: 16,
+        lineHeight: 20,
     },
 });

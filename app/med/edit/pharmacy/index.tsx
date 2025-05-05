@@ -1,6 +1,6 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {View, Text, StyleSheet, Pressable, TouchableOpacity, TextInput, Image, Alert, Linking} from "react-native";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {useTranslation} from "react-i18next";
 // @ts-ignore
 import ArrowLeft from "@/assets/icons/arrow-left.svg";
@@ -12,15 +12,36 @@ import * as Yup from "yup";
 import * as Location from "expo-location";
 import {Button,Select} from "native-base";
 import CameraScreen from "@/components/camera";
+import usePatchQuery from "@/hooks/api/usePatchQuery";
 
 export default function PharmacyAddScreen () {
     const {t} = useTranslation();
+    const { id } = useLocalSearchParams();
     const [selectedRegion, setSelectedRegion] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [photoUrl, setPhotoUrl] = useState(null);
     const [isOpenCamera, setIsOpenCamera] = useState(false);
     const [location, setLocation] = useState(null);
     const [name, setName] = useState(null);
+
+    const {data,isPending} = useFetchRequest({
+        queryKey: `api/app/med-institution/${id}`,
+        endpoint: `api/app/med-institution/get/${id}`,
+        enabled: !!id,
+    })
+
+    useEffect(() => {
+        setName(get(data,'name'))
+        setPhotoUrl(get(data,'photoUrl'))
+        setSelectedRegion(get(data,'regionId'))
+        setSelectedDistrict(get(data,'districtId'))
+        setLocation(
+            {
+                lat: get(data,'lat'),
+                lng: get(data,'lng'),
+            }
+        )
+    }, [data]);
 
     const {data:regions,isPending:isPendingRegions} = useFetchRequest({
         queryKey: "api/app/regions",
@@ -33,7 +54,7 @@ export default function PharmacyAddScreen () {
         enabled: !!selectedRegion,
     })
 
-    const {mutate,isPending:isPending} = usePostQuery({})
+    const {mutate,isPending:isPendingPost} = usePatchQuery({})
 
     const getCurrentLocation = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -68,7 +89,7 @@ export default function PharmacyAddScreen () {
             return Alert.alert(t("Xatolik"), t("Iltimos, joylashuvni kiriting."));
         }
         mutate({
-            endpoint: 'api/app/med-institution/add',
+            endpoint: `api/app/med-institution/edit/${id}`,
             attributes: {
                 name: name ?? get(values, 'name'),
                 districtId: selectedDistrict,
@@ -107,7 +128,7 @@ export default function PharmacyAddScreen () {
                     <Pressable onPress={() => router.back()}>
                         <ArrowLeft width={24} height={24} />
                     </Pressable>
-                    <Text style={styles.headerTitle}>{t("Klinika qo’shish")}</Text>
+                    <Text style={styles.headerTitle}>{get(data,'name')}</Text>
                 </View>
                 <View style={{display: "flex",flexDirection: "row",alignItems: "center", justifyContent: "space-between"}}>
                     <View style={{display: "flex",flexDirection: "row", alignItems: "center", gap: 10}}>
@@ -224,7 +245,7 @@ export default function PharmacyAddScreen () {
                                 </Text>
                             )}
 
-                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPending}>
+                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost}>
                                 <Text style={styles.submitButtonText}>{t("Saqlash")}</Text>
                             </Button>
                         </View>

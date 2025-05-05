@@ -12,6 +12,7 @@ import i18n from "@/lib/i18n";
 import {Feather, Ionicons} from "@expo/vector-icons";
 import {request} from "@/lib/api";
 import {router} from "expo-router";
+import {useQueryClient} from "@tanstack/react-query";
 
 export default function ProfileScreen() {
     const user = useAuthStore(state => get(state, "user",{}));
@@ -21,6 +22,7 @@ export default function ProfileScreen() {
     const lang = useAuthStore(state => (state as any).lang);
     const setLanguage = useAuthStore(state => (state as any).setLang);
     const clearAuthData = useAuthStore(state => (state as any).clearAuthData);
+    const queryClient = useQueryClient();
 
     const changeLanguage = (value: string) => {
         i18n.changeLanguage(value);
@@ -30,9 +32,11 @@ export default function ProfileScreen() {
 
     const handleLogOut = () => {
         request.post('/api/app/auth/logout').then(r => {
+            queryClient.clear()
             clearAuthData();
             router.push("/auth");
         }).catch(reason => {
+            queryClient.clear()
             clearAuthData();
             router.push("/auth");
         })

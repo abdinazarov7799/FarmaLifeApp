@@ -3,7 +3,7 @@ import {Stack} from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import {useEffect} from "react";
 import "react-native-reanimated";
-import {QueryClient} from "@tanstack/react-query";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {extendTheme, NativeBaseProvider} from "native-base";
 import "../lib/i18n";
 import {useTranslation} from "react-i18next";
@@ -45,7 +45,9 @@ onlineManager.setEventListener((setOnline) => {
 
 const persister = createSyncStoragePersister({ storage: storageAdapter });
 
-const queryClient = new QueryClient({
+const queryClient = new QueryClient();
+
+const queryClientOffline = new QueryClient({
 	defaultOptions: {
 		queries: {
 			staleTime: 1000 * 60 * 5,
@@ -101,8 +103,8 @@ function RootLayoutNav() {
 
 	return (
 		<>
-			<PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
-				{/*<QueryClientProvider client={queryClient}>*/}
+			{/*<PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>*/}
+				<QueryClientProvider client={queryClient}>
 					<GestureHandlerRootView>
 						<NativeBaseProvider theme={theme}>
 							<AppUpdateChecker />
@@ -117,15 +119,18 @@ function RootLayoutNav() {
 									<Stack.Screen name="med/[id]" options={{headerShown: false,}} />
 									<Stack.Screen name="pharmacy/[id]" options={{headerShown: false,}} />
 									<Stack.Screen name="pharmacy/add" options={{headerShown: false,}} />
+									<Stack.Screen name="pharmacy/edit" options={{headerShown: false,}} />
 									<Stack.Screen name="pharmacy/stocks" options={{headerShown: false,}} />
 									<Stack.Screen name="med/add/doctor" options={{headerShown: false,}} />
 									<Stack.Screen name="med/add/pharmacy" options={{headerShown: false,}} />
+									<Stack.Screen name="med/edit/doctor" options={{headerShown: false,}} />
+									<Stack.Screen name="med/edit/pharmacy" options={{headerShown: false,}} />
 								</Stack>
 							</BottomSheetModalProvider>
 						</NativeBaseProvider>
 					</GestureHandlerRootView>
-				{/*</QueryClientProvider>*/}
-			</PersistQueryClientProvider>
+				</QueryClientProvider>
+			{/*</PersistQueryClientProvider>*/}
 		</>
 	);
 }

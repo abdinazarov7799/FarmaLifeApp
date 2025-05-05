@@ -33,26 +33,26 @@ export default function MedView() {
     const {t} = useTranslation();
     const [selected, setSelected] = useState(null);
     const {addToOfflineVisits} = useAuthStore();
-    const [isOnline, setIsOnline] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
 
-    useEffect(() => {
-        const checkNetworkStatus = async () => {
-            const networkState = await Network.getNetworkStateAsync();
-            setIsOnline(networkState.isConnected);
-        };
-        checkNetworkStatus();
+    // useEffect(() => {
+    //     const checkNetworkStatus = async () => {
+    //         const networkState = await Network.getNetworkStateAsync();
+    //         setIsOnline(networkState.isConnected);
+    //     };
+    //     checkNetworkStatus();
+    //
+    //     const unsubscribe = Network.addNetworkStateListener((networkState) => {
+    //         setIsOnline(networkState.isConnected);
+    //     });
+    //
+    //     return () => {
+    //         unsubscribe.remove();
+    //     };
+    // }, []);
 
-        const unsubscribe = Network.addNetworkStateListener((networkState) => {
-            setIsOnline(networkState.isConnected);
-        });
 
-        return () => {
-            unsubscribe.remove();
-        };
-    }, []);
-
-
-    const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
+    const {data,isLoading,isRefreshing, onRefresh, onEndReached, isFetchingNextPage, totalElements} = useInfiniteScroll({
         key: `doctors/${id}`,
         url: `api/app/doctors/${id}`,
         limit: 20
@@ -84,15 +84,17 @@ export default function MedView() {
                 endpoint: `api/app/doctors/visit/${get(selected,'id')}?createdTime=${dayjs().unix()}&lat=${locationData.coords.latitude}&lng=${locationData.coords.longitude}`
             }, {
                 onSuccess: (res) => {
+                    Alert.alert(t("Ajoyib"), t("Muvofaqqiyatli visit qilindi"));
                     setSelected(null);
                 },
                 onError: (e) => {
                     const messages = get(e,'response.data.errors',[])
                     if (isArray(messages)){
                         messages?.forEach(message=> {
-                            Alert.alert(t(get(message,'errorMsg')));
+                            Alert.alert(t(get(message,'errorMsg','Xatolik')));
                         })
                     }
+                    setSelected(null);
                 }
             });
         }else {
@@ -129,6 +131,11 @@ export default function MedView() {
             </View>
 
             <View style={styles.container}>
+                <View style={{justifyContent: 'flex-end',display: "flex",flexDirection: "row", marginVertical: 6}}>
+                    <Text style={{fontSize: 14}}>
+                        {t("Miqdori")}: {totalElements}
+                    </Text>
+                </View>
                 <FlatList
                     data={data}
                     keyExtractor={(item, index) => index.toString()}
@@ -204,7 +211,6 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: "#F1F5F8",
         paddingHorizontal: 16,
-        paddingTop: 12,
         flex: 1
     },
     header: {

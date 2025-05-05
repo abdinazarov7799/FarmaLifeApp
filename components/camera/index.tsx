@@ -16,23 +16,23 @@ export default function CameraScreen({setPhotoUrl, onClose, handleNavigate,offli
     const cameraRef = useRef(null);
     const {t} = useTranslation();
     const [loading, setLoading] = useState(false);
-    const [isOnline, setIsOnline] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
 
-    useEffect(() => {
-        const checkNetworkStatus = async () => {
-            const networkState = await Network.getNetworkStateAsync();
-            setIsOnline(networkState.isConnected);
-        };
-        checkNetworkStatus();
-
-        const unsubscribe = Network.addNetworkStateListener((networkState) => {
-            setIsOnline(networkState.isConnected);
-        });
-
-        return () => {
-            unsubscribe.remove();
-        };
-    }, []);
+    // useEffect(() => {
+    //     const checkNetworkStatus = async () => {
+    //         const networkState = await Network.getNetworkStateAsync();
+    //         setIsOnline(networkState.isConnected);
+    //     };
+    //     checkNetworkStatus();
+    //
+    //     const unsubscribe = Network.addNetworkStateListener((networkState) => {
+    //         setIsOnline(networkState.isConnected);
+    //     });
+    //
+    //     return () => {
+    //         unsubscribe.remove();
+    //     };
+    // }, []);
 
     if (!permission) {
         return <View />;

@@ -45,6 +45,10 @@ export const useAuthStore = create(
                 user: null,
                 accessToken: null,
                 refreshToken: null,
+                lang: 'uz',
+                offlineVisits: [],
+                offlineStocks: [],
+                isOfflineSyncing: false,
             }),
         }),
         {

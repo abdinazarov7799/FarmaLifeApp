@@ -22,7 +22,7 @@ import * as Network from "expo-network";
 export default function HomeScreen() {
     const {t} = useTranslation();
     const {offlineVisits,isOfflineSyncing,offlineStocks} = useAuthStore();
-    const [isOnline, setIsOnline] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
 
     const {data,isPending,refetch,isRefetching} = useFetchRequest({
         queryKey: "home",
@@ -32,29 +32,29 @@ export default function HomeScreen() {
     const stocks = isArray(get(data, 'stocks', [])) ? get(data, 'stocks', []) : [];
     const visits = isArray(get(data, 'stocks', [])) ? get(data, 'visits', []) : [];
 
-    useEffect(() => {
-        const checkNetworkStatus = async () => {
-            const networkState = await Network.getNetworkStateAsync();
-            setIsOnline(networkState.isConnected);
-        };
-        checkNetworkStatus();
+    // useEffect(() => {
+    //     const checkNetworkStatus = async () => {
+    //         const networkState = await Network.getNetworkStateAsync();
+    //         setIsOnline(networkState.isConnected);
+    //     };
+    //     checkNetworkStatus();
+    //
+    //     const unsubscribe = Network.addNetworkStateListener((networkState) => {
+    //         setIsOnline(networkState.isConnected);
+    //     });
+    //
+    //     return () => {
+    //         unsubscribe.remove();
+    //     };
+    // }, []);
 
-        const unsubscribe = Network.addNetworkStateListener((networkState) => {
-            setIsOnline(networkState.isConnected);
-        });
-
-        return () => {
-            unsubscribe.remove();
-        };
-    }, []);
-
-    const onSync = async () => {
-        try {
-            await OfflineManager(isOnline, t);
-        } catch (e) {
-            console.error("OfflineManager error:", e);
-            Alert.alert(t("Xatolik"), t("Sinxronizatsiya amalga oshmadi"));
-        }
+    const onSync = () => {
+        // try {
+        //     await OfflineManager(isOnline, t);
+        // } catch (e) {
+        //     console.error("OfflineManager error:", e);
+        //     Alert.alert(t("Xatolik"), t("Sinxronizatsiya amalga oshmadi"));
+        // }
     }
 
     if (isPending) return <Loader />;

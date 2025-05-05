@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
-import _, {get} from 'lodash';
+import _, {get, last} from 'lodash';
 import {request} from "@/lib/api";
 
 type Params<F> = {
@@ -39,7 +39,7 @@ export const useInfiniteScroll = <T = unknown, F = object>({
         queryFn,
         initialPageParam: 0,
         getNextPageParam: (lastPage, __, lastPageParam) => {
-            if (_.get(lastPage,'data.pageable.pageNumber',0) >= _.get(lastPage,'totalPages',0)) {
+            if (_.get(lastPage,'data.data.pageable.pageNumber',0) >= _.get(lastPage,'data.totalPages',0)) {
                 return undefined;
             }
             return lastPageParam + 1;
@@ -74,6 +74,7 @@ export const useInfiniteScroll = <T = unknown, F = object>({
         isRefreshing,
         onRefresh,
         isFetchingNextPage,
-        isLoading:isLoading
+        isLoading:isLoading,
+        totalElements: get(last(get(data,'pages',[])),'data.totalElements',0)
     };
 };

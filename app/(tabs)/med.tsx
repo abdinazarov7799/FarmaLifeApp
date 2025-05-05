@@ -1,10 +1,20 @@
 import {
     View,
-    StyleSheet, Linking, Platform, FlatList, Text, Pressable, TouchableOpacity, RefreshControl, ActivityIndicator
+    StyleSheet,
+    Linking,
+    Platform,
+    FlatList,
+    Text,
+    Pressable,
+    TouchableOpacity,
+    RefreshControl,
+    ActivityIndicator,
+    Modal,
+    Alert
 } from "react-native";
-import React, {useCallback, useEffect, useLayoutEffect, useState} from "react";
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from "react";
 import Loader from "@/components/shared/Loader";
-import {get} from "lodash";
+import {get, isArray} from "lodash";
 import ListEmptyComponent from "@/components/ListEmptyComponent";
 import {router, useNavigation} from "expo-router";
 import SearchIcon from "@/assets/icons/search.svg";
@@ -13,11 +23,23 @@ import LocationIcon from "@/assets/icons/location.svg";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 import {useTranslation} from "react-i18next";
 import {Input} from "native-base";
+import {BaseBottomSheet} from "@/components/shared/bottom-sheet";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import VisitIcon from "@/assets/icons/visit-icon.svg";
+import {BottomSheetModal} from "@gorhom/bottom-sheet";
+import Feather from "@expo/vector-icons/Feather";
+import useDeleteQuery from "@/hooks/api/useDeleteQuery";
 
 export default function MedScreen() {
     const navigation = useNavigation();
     const {t} = useTranslation();
     const [search,setSearch] = useState(null);
+    const [selected, setSelected] = useState(null);
+    const [selectedMore,setSelectedMore] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(null);
+    const sheetRef = useRef<BottomSheetModal>(null);
+
+    const {mutate,isPending} = useDeleteQuery({queryKey: [`med_institution_list`]})
 
     const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
         key: "med_institution_list",
@@ -53,8 +75,27 @@ export default function MedScreen() {
 
     }
 
-    // if (isLoading) return <Loader />;
+    const handleDelete = (id:any) => {
+        mutate({
+            endpoint: `api/app/med-institution/delete/${id}`,
+        },{
+            onSuccess: () => {
+                Alert.alert(t("Ajoyib"), t("Muvofaqqiyatli o'chirildi"));
+                setIsModalOpen(false)
+            },
+            onError: (error) => {
+                setIsModalOpen(false)
+                const messages = get(error,'response.data.errors',[])
+                if (isArray(messages)){
+                    messages?.forEach(message=> {
+                        Alert.alert(t(get(message,'errorMsg')));
+                    })
+                }
+            }
+        })
+    }
 
+    // if (isLoading) return <Loader />;
     return (
         <View style={styles.container}>
             <View style={{ backgroundColor: '#fff', padding: 8, borderRadius: 999, marginBottom: 8 }}>
@@ -83,8 +124,13 @@ export default function MedScreen() {
                             </Text>
                         </View>
                         <Text style={styles.listTitle}>{get(item,'name','')}</Text>
-                        <Pressable style={{marginLeft: "auto"}} onPress={() => handleOpenMap(get(item,'lat'),get(item,'lng'))}>
-                            <LocationIcon />
+                        <Pressable onPress={() => {
+                            sheetRef.current?.present();
+                            setSelectedMore(item)
+                        }}>
+                            <View style={{flex: 1}}>
+                                <Feather name="more-horizontal" size={24} color="black" style={{margin: "auto"}} />
+                            </View>
                         </Pressable>
                     </TouchableOpacity>
                 )}
@@ -94,6 +140,73 @@ export default function MedScreen() {
                     </View>
                 }
             />
+            <BaseBottomSheet
+                bottomSheetRef={sheetRef}
+                snap={"25%"}
+                backgroundColor="#F5F6F7"
+            >
+                <View style={{padding: 16,marginBottom: 16}}>
+                    <TouchableOpacity style={[styles.button, {marginBottom: 16,backgroundColor: "#e4e4e4"}]} onPress={() => {
+                        handleOpenMap(get(selectedMore,'lat'),get(selectedMore,'lng'))
+                    }}>
+                        <Text style={{fontSize: 16,marginRight: 10,fontWeight: 500}}>
+                            {t("Location")}
+                        </Text>
+                        <LocationIcon width={24} height={24} style={{flex: 1}} />
+                    </TouchableOpacity>
+                    {
+                        get(selectedMore,'author') && (
+                            <View style={{flexDirection: "row",alignItems: "center"}}>
+                                <TouchableOpacity style={[styles.button, {backgroundColor: "#DC5558",marginRight: 10}]} onPress={() => {
+                                    setIsModalOpen(selectedMore)
+                                    sheetRef.current?.dismiss();
+                                }}>
+                                    <AntDesign name="delete" size={24} color="white" />
+                                    <Text style={styles.buttonText}>{t("Delete")}</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.button, {backgroundColor: "#dad832",marginLeft: 10}]} onPress={() => {
+                                    router.push(`/med/edit/pharmacy?id=${get(selectedMore,'id')}`);
+                                    sheetRef.current?.dismiss();
+                                }}>
+                                    <AntDesign name="edit" size={24} color="white" />
+                                    <Text style={styles.buttonText}>{t("Edit")}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )
+                    }
+                </View>
+            </BaseBottomSheet>
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={!!isModalOpen}
+            >
+                <Pressable style={styles.overlay} onPress={() => setIsModalOpen(null)}>
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <VisitIcon />
+                            <Text style={{fontWeight: 500,fontSize: 22,marginTop: 16,marginBottom:6}}>
+                                {get(isModalOpen,'name')}
+                            </Text>
+                            <Text style={{fontWeight: 500,fontSize: 16,marginTop: 6,marginBottom:40}}>
+                                {get(isModalOpen,'inn')}
+                            </Text>
+                            <View style={{display: "flex",flexDirection: "row",marginLeft: "auto",alignItems: "center"}}>
+                                <Pressable onPress={() => handleDelete(get(isModalOpen,'id'))}>
+                                    <Text style={{color: "#ca1010",fontWeight: 600,fontSize: 16,marginRight: 41}}>
+                                        {t("O'chirish")}
+                                    </Text>
+                                </Pressable>
+                                <Pressable onPress={() => setIsModalOpen(null)}>
+                                    <Text style={{color: "#0C5591",fontWeight: 400,fontSize: 16}}>
+                                        {t("Orqaga qaytish")}
+                                    </Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </Pressable>
+            </Modal>
             <Pressable style={styles.floatButton} onPress={() => router.push('/med/add/pharmacy')}>
                 <AddIcon />
             </Pressable>
@@ -136,7 +249,8 @@ const styles = StyleSheet.create({
     listTitle: {
         fontSize: 18,
         fontWeight: "400",
-        color: "#000"
+        color: "#000",
+        flex: 1
     },
     floatButton: {
         position: "absolute",
@@ -155,5 +269,47 @@ const styles = StyleSheet.create({
         height: 100,
         justifyContent: "center",
         alignItems: "center",
+    },
+    button: {
+        flex: 1,
+        padding: 14,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 12
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 16,
+        marginLeft: 10,
+        fontWeight: "500"
+    },
+    overlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        paddingTop: 20,
+        paddingBottom: 24,
+        paddingHorizontal: 30,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     },
 });
