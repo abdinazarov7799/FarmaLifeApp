@@ -9,10 +9,12 @@ import * as Yup from "yup";
 import usePostQuery from "@/hooks/api/usePostQuery";
 import {Button} from "native-base";
 import {get, isArray} from "lodash";
+import usePatchQuery from "@/hooks/api/usePatchQuery";
+import useFetchRequest from "@/hooks/api/useFetchRequest";
 
 export default function PharmacyAddScreen () {
     const {t} = useTranslation();
-    const { id } = useLocalSearchParams();
+    const { id, medInstitutionId } = useLocalSearchParams();
 
     const validationSchema = Yup.object().shape({
         fio: Yup.string().required('sdasd'),
@@ -22,13 +24,19 @@ export default function PharmacyAddScreen () {
         secondPlaceOfWork: Yup.string().required(),
     });
 
-    const {mutate,isPending:isPending} = usePostQuery({})
+    const {data,isPending} = useFetchRequest({
+        queryKey: `api/app/doctors/${id}`,
+        endpoint: `api/app/doctors/get/${id}`,
+        enabled: !!id,
+    })
+
+    const {mutate,isPending:isPendingPost} = usePatchQuery({})
 
     const onSubmit = (values:any) => {
         mutate({
-            endpoint: 'api/app/doctors/add',
+            endpoint: `api/app/doctors/edit/${id}`,
             attributes: {
-                medInstitutionId: id,
+                medInstitutionId,
                 ...values
             }
         }, {
@@ -54,7 +62,7 @@ export default function PharmacyAddScreen () {
                     <Pressable onPress={() => router.back()}>
                         <ArrowLeft width={24} height={24} />
                     </Pressable>
-                    <Text style={styles.headerTitle}>{t("Shifokor qo’shish")}</Text>
+                    <Text style={styles.headerTitle}>{get(data,'fio')}</Text>
                 </View>
                 <View style={{display: "flex",flexDirection: "row",alignItems: "center", justifyContent: "space-between"}}>
                     <View style={{display: "flex",flexDirection: "row", alignItems: "center", gap: 10}}>
@@ -70,9 +78,16 @@ export default function PharmacyAddScreen () {
 
             <View style={styles.container}>
                 <Formik
-                    initialValues={{}}
                     validationSchema={validationSchema}
                     onSubmit={onSubmit}
+                    enableReinitialize
+                    initialValues={{
+                        fio: get(data, 'fio', ''),
+                        position: get(data, 'position', ''),
+                        phone: get(data, 'phone', ''),
+                        specialization: get(data, 'specialization', ''),
+                        secondPlaceOfWork: get(data, 'secondPlaceOfWork', ''),
+                    }}
                 >
                     {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
                         <View style={{ flex: 1 }}>
@@ -141,7 +156,7 @@ export default function PharmacyAddScreen () {
                             />
                             {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
-                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPending}>
+                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost}>
                                 <Text style={styles.submitButtonText}>{t("Saqlash")}</Text>
                             </Button>
                         </View>

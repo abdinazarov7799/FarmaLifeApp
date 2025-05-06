@@ -65,7 +65,7 @@ export default function HistoryView() {
                 setSelected(null);
                 if (isArray(messages)){
                     messages?.forEach(message=> {
-                        Alert.alert(t(get(message,'errorMsg')));
+                        Alert.alert(t(get(message,'errorMsg','Xatolik')))
                     })
                 }
             }

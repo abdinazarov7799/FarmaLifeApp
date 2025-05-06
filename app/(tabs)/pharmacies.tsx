@@ -67,7 +67,7 @@ export default function PharmaciesScreen() {
                 const messages = get(error,'response.data.errors',[])
                 if (isArray(messages)){
                     messages?.forEach(message=> {
-                        Alert.alert(t(get(message,'errorMsg')));
+                        Alert.alert(t(get(message,'errorMsg','Xatolik')))
                     })
                 }
             }
