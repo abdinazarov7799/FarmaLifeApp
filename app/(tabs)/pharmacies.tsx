@@ -12,7 +12,6 @@ import {router, useNavigation} from "expo-router";
 import SearchIcon from "@/assets/icons/search.svg";
 import AddIcon from "@/assets/icons/add-circle.svg";
 import LocationIcon from "@/assets/icons/location.svg";
-import CameraScreen from "@/components/camera";
 import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 import {Input} from "native-base";
 import {useTranslation} from "react-i18next";
@@ -76,18 +75,17 @@ export default function PharmaciesScreen() {
 
     useEffect(() => {
        setSelected(null);
-       setPhotoUrl(null);
     },[])
 
-    const handleNavigate = (compressedUri) => {
-        router.push(`/pharmacy/${get(selected,'id')}?photoUrl=${compressedUri}&title=${get(selected,'name')}&inn=${get(selected,'inn')}`)
+    const handleNavigate = () => {
+        router.push(`/pharmacy/${get(selected,'id')}?title=${get(selected,'name')}&inn=${get(selected,'inn')}`)
     }
 
     useEffect(() => {
-        if (!!selected && !!photoUrl) {
-            router.push(`/pharmacy/${get(selected,'id')}?photoUrl=${photoUrl}&title=${get(selected,'name')}&inn=${get(selected,'inn')}`);
+        if (!!selected) {
+            router.push(`/pharmacy/${get(selected,'id')}?title=${get(selected,'name')}&inn=${get(selected,'inn')}`);
         }
-    }, [selected,photoUrl]);
+    }, [selected]);
 
     const handleOpenMap = async (lat:any, long:any) => {
 
@@ -104,17 +102,17 @@ export default function PharmaciesScreen() {
 
     };
 
-    if (!!selected) return (
-        <CameraScreen
-            setPhotoUrl={(url:any) => setPhotoUrl(url)}
-            onClose={() => {
-                setSelected(null)
-                setPhotoUrl(null)
-            }}
-            handleNavigate={handleNavigate}
-            offlineSupport={true}
-        />
-    )
+    // if (!!selected) return (
+    //     <CameraScreen
+    //         setPhotoUrl={(url:any) => setPhotoUrl(url)}
+    //         onClose={() => {
+    //             setSelected(null)
+    //             setPhotoUrl(null)
+    //         }}
+    //         handleNavigate={handleNavigate}
+    //         offlineSupport={true}
+    //     />
+    // )
 
     // if (isLoading) return <Loader />
     return (

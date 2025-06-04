@@ -27,9 +27,10 @@ import * as Location from "expo-location";
 
 export default function StocksAddScreen() {
     const { t } = useTranslation();
-    const { id, photoUrl } = useLocalSearchParams();
+    const { id } = useLocalSearchParams();
     const {addToOfflineStocks} = useAuthStore();
     const [isOnline, setIsOnline] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     // useEffect(() => {
     //     const checkNetworkStatus = async () => {
@@ -54,8 +55,9 @@ export default function StocksAddScreen() {
     });
 
     const { mutate, isPending: isPendingMutate } = usePostQuery({});
-
+    console.log(isPendingMutate,'isPendingMutate')
     const onSubmit = async (values) => {
+        setLoading(true);
         const { status } = await Location.requestForegroundPermissionsAsync();
 
         if (status !== "granted") {
@@ -79,11 +81,6 @@ export default function StocksAddScreen() {
             }
         })
 
-        if (!photoUrl) {
-            Alert.alert(t("Diqqat!"), t("Dorilarni qo'shish uchun rasm yuklash majburiy!"));
-            return;
-        }
-
         if (isOnline) {
             mutate(
                 {
@@ -91,7 +88,6 @@ export default function StocksAddScreen() {
                     attributes: {
                         pharmacyId: id,
                         createdTime: dayjs().unix(),
-                        photoUrl: photoUrl,
                         drugs: drugsArray,
                         lat: locationData.coords.latitude,
                         lng: locationData.coords.longitude
@@ -99,10 +95,11 @@ export default function StocksAddScreen() {
                 },
                 {
                     onSuccess: () => {
+                        setLoading(false);
                         Alert.alert(t("Ajoyib"), t("Muvofaqqiyatli saqlandi"));
-                        router.push("/pharmacies");
                         },
                     onError: (error) => {
+                        setLoading(false);
                         const messages = get(error,'response.data.errors',[])
                         if (isArray(messages)){
                             messages?.forEach(message=> {
@@ -208,7 +205,7 @@ export default function StocksAddScreen() {
                         />
 
                         <View style={styles.footerContainer}>
-                            <Button style={styles.stockButton} onPress={handleSubmit} isLoading={isPendingMutate}>
+                            <Button style={styles.stockButton} onPress={handleSubmit} isLoading={loading} isDisabled={loading} >
                                 <Text style={styles.buttonText}>{t("Kiritish")}</Text>
                             </Button>
                         </View>

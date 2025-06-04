@@ -13,7 +13,7 @@ import {useInfiniteScroll} from "@/hooks/useInfiniteScroll";
 import {Button} from "native-base";
 
 export default function PharmacyView() {
-    const { id, title, inn, photoUrl } = useLocalSearchParams();
+    const { id, title, inn } = useLocalSearchParams();
     const {t} = useTranslation();
 
     const {data,isLoading ,isRefreshing, onRefresh, onEndReached, isFetchingNextPage} = useInfiniteScroll({
@@ -63,7 +63,7 @@ export default function PharmacyView() {
 
                                 <FlatList
                                     data={items}
-                                    keyExtractor={(item) => get(item,'id').toString()}
+                                    keyExtractor={(item,index) => `sub_${index}`}
                                     ListEmptyComponent={<ListEmptyComponent text={null}/>}
                                     renderItem={({ item }) => {
                                         return (
@@ -99,7 +99,7 @@ export default function PharmacyView() {
             </View>
 
             <View style={{position: "absolute", bottom: 0, backgroundColor: "#fff", paddingTop: 12, paddingBottom: 25, paddingHorizontal: 20,width: "100%"}}>
-                <Button style={styles.stockButton} onPress={() => router.push(`/pharmacy/stocks?id=${id}&photoUrl=${photoUrl}`)}>
+                <Button style={styles.stockButton} onPress={() => router.push(`/pharmacy/stocks?id=${id}&a=b`)}>
                     <Text style={{fontSize: 16, lineHeight: 20, color: "#fff"}}>{t("Qoldiq kiritish")}</Text>
                 </Button>
             </View>

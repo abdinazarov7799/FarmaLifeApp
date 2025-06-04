@@ -7,7 +7,7 @@ import ArrowLeft from "@/assets/icons/arrow-left.svg";
 import {Formik} from "formik";
 import * as Yup from "yup";
 import usePostQuery from "@/hooks/api/usePostQuery";
-import {Button} from "native-base";
+import {Button, Select} from "native-base";
 import {get, isArray} from "lodash";
 import usePatchQuery from "@/hooks/api/usePatchQuery";
 import useFetchRequest from "@/hooks/api/useFetchRequest";
@@ -15,6 +15,8 @@ import useFetchRequest from "@/hooks/api/useFetchRequest";
 export default function PharmacyAddScreen () {
     const {t} = useTranslation();
     const { id, medInstitutionId } = useLocalSearchParams();
+    const [loading, setLoading] = React.useState(false);
+    const [selected, setSelected] = React.useState<string | null>(null);
 
     const validationSchema = Yup.object().shape({
         fio: Yup.string().required('sdasd'),
@@ -30,9 +32,19 @@ export default function PharmacyAddScreen () {
         enabled: !!id,
     })
 
+    const {data:specializations,isPending:isPendingSpecialization} = useFetchRequest({
+        queryKey: "api/admin/specializations",
+        endpoint: "api/admin/specializations",
+        params: {
+            page: 0,
+            size: 1000
+        }
+    })
+
     const {mutate,isPending:isPendingPost} = usePatchQuery({})
 
     const onSubmit = (values:any) => {
+        setLoading(true);
         mutate({
             endpoint: `api/app/doctors/edit/${id}`,
             attributes: {
@@ -41,10 +53,12 @@ export default function PharmacyAddScreen () {
             }
         }, {
             onSuccess: (res) => {
+                setLoading(false);
                 Alert.alert(t("Ajoyib"), t("Muvofaqqiyatli saqlandi"));
                 router.back();
             },
             onError: (error) => {
+                setLoading(false);
                 const messages = get(error,'response.data.errors',[])
                 if (isArray(messages)){
                     messages?.forEach(message=> {
@@ -121,13 +135,30 @@ export default function PharmacyAddScreen () {
                                 <View style={{width: 7,height: 7, backgroundColor: "#00C249", borderRadius: "50%"}}></View>
                                 <Text style={styles.label}>{t("Ixtisos")}</Text>
                             </View>
-                            <TextInput
-                                style={styles.input}
-                                placeholder={t("Ixtisosni kiriting")}
-                                value={values.specialization}
-                                onChangeText={handleChange("specialization")}
-                                onBlur={handleBlur("specialization")}
-                            />
+                            <View style={styles.selectBox}>
+                                <Select
+                                    style={styles.select}
+                                    selectedValue={selected ?? values.specialization}
+                                    variant={"unstyled"}
+                                    onValueChange={(itemValue, itemIndex) => {
+                                        setSelected(itemValue)
+                                        handleChange("specialization")(itemValue)
+                                    }}>
+                                    {
+                                        isArray(get(specializations,'content',[])) && (
+                                            get(specializations,'content',[])?.map(item => {
+                                                return (
+                                                    <Select.Item
+                                                        label={get(item,'name')}
+                                                        value={get(item,'name')}
+                                                        key={get(item,'id')}
+                                                    />
+                                                )
+                                            })
+                                        )
+                                    }
+                                </Select>
+                            </View>
                             {touched.specialization && errors.specialization && <Text style={styles.errorText}>{errors.specialization}</Text>}
 
                             <View style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
@@ -156,7 +187,7 @@ export default function PharmacyAddScreen () {
                             />
                             {touched.phone && errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
-                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost}>
+                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost || loading} isDisabled={isPendingPost || loading}>
                                 <Text style={styles.submitButtonText}>{t("Saqlash")}</Text>
                             </Button>
                         </View>
@@ -220,5 +251,16 @@ const styles = StyleSheet.create({
     errorText: {
         color: "red",
         fontSize: 12,
+    },
+    selectBox: {
+        backgroundColor: "#FFF",
+        marginTop: 6,
+        marginBottom: 24,
+        borderRadius: 12,
+    },
+    select: {
+        height: 44,
+        fontSize: 16,
+        lineHeight: 20,
     },
 });

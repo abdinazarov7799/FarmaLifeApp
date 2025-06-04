@@ -134,8 +134,8 @@ export default function HomeScreen() {
             </View>
             <View style={[styles.floatButton,{backgroundColor: (isEmpty(offlineVisits) || isEmpty(offlineStocks)) ? "#0C5591" : "rgb(198,169,24)"}]}>
                 {
-                    isOfflineSyncing ? <ActivityIndicator size={"small"} color="#fff" /> : (
-                        <Pressable onPress={onSync}>
+                    isRefetching ? <ActivityIndicator size={"small"} color="#fff" /> : (
+                        <Pressable onPress={refetch}>
                             <RefreshIcon />
                         </Pressable>
                     )

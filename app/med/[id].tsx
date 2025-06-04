@@ -33,6 +33,8 @@ import Feather from "@expo/vector-icons/Feather";
 import {BaseBottomSheet} from "@/components/shared/bottom-sheet";
 import LocationIcon from "@/assets/icons/location.svg";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import {Input} from "native-base";
+import SearchIcon from "@/assets/icons/search.svg";
 
 export default function MedView() {
     const { id, title } = useLocalSearchParams();
@@ -43,6 +45,7 @@ export default function MedView() {
     const [selectedMore,setSelectedMore] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(null);
     const sheetRef = useRef<BottomSheetModal>(null);
+    const [search,setSearch] = useState(null);
 
     // useEffect(() => {
     //     const checkNetworkStatus = async () => {
@@ -64,7 +67,10 @@ export default function MedView() {
     const {data,isLoading,isRefreshing, onRefresh, onEndReached, isFetchingNextPage, totalElements} = useInfiniteScroll({
         key: `doctors/${id}`,
         url: `api/app/doctors/${id}`,
-        limit: 20
+        limit: 20,
+        filters: {
+            search
+        }
     })
 
     const {mutate,isPending:isPendingVisit} = usePostQuery({
@@ -140,7 +146,6 @@ export default function MedView() {
             setSelected(null);
         }
     }
-    if (isLoading || isPendingVisit) return <Loader />;
 
     const isToday = (dateTime) => {
         return dayjs(dateTime).isToday()
@@ -163,6 +168,18 @@ export default function MedView() {
             </View>
 
             <View style={styles.container}>
+                <View style={{ backgroundColor: '#fff', padding: 8, borderRadius: 999, marginVertical: 8 }}>
+                    <Input
+                        variant="unstyled"
+                        style={{ color: '#6b7280', fontSize: 15 }}
+                        value={search}
+                        placeholder={t("Doctorlarni izlash")}
+                        onChangeText={(text) => setSearch(text)}
+                        InputLeftElement={
+                            <SearchIcon width={20} height={20} />
+                        }
+                    />
+                </View>
                 <View style={{justifyContent: 'flex-end',display: "flex",flexDirection: "row", marginVertical: 6}}>
                     <Text style={{fontSize: 14}}>
                         {t("Miqdori")}: {totalElements}

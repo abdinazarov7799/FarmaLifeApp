@@ -14,7 +14,7 @@ import {Button,Select} from "native-base";
 import CameraScreen from "@/components/camera";
 import usePatchQuery from "@/hooks/api/usePatchQuery";
 
-export default function PharmacyAddScreen () {
+export default function PharmacyEditScreen () {
     const {t} = useTranslation();
     const { id } = useLocalSearchParams();
     const [selectedRegion, setSelectedRegion] = useState(null);
@@ -29,7 +29,7 @@ export default function PharmacyAddScreen () {
         endpoint: `api/app/med-institution/get/${id}`,
         enabled: !!id,
     })
-
+    console.log(data,'data')
     useEffect(() => {
         setName(get(data,'name'))
         setPhotoUrl(get(data,'photoUrl'))
@@ -245,7 +245,7 @@ export default function PharmacyAddScreen () {
                                 </Text>
                             )}
 
-                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost}>
+                            <Button style={styles.submitButton} onPress={handleSubmit} isLoading={isPendingPost} isDisabled={isPendingPost}>
                                 <Text style={styles.submitButtonText}>{t("Saqlash")}</Text>
                             </Button>
                         </View>
